@@ -292,7 +292,7 @@ public abstract class CoreExport implements IRunnableWithProgress {
 					}
 						
 					if (aam != null) {
-						aam.processAllActivities(ParserAllActivityModifier.PARSE,false);
+						aam.processAllActivities(ParserAllActivityModifier.PARSE,false,null);
 					}
 					
 					if (monitor != null) {
