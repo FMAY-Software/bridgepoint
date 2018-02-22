@@ -25,14 +25,11 @@ package org.xtuml.bp.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import org.eclipse.ui.PlatformUI;
-
 import org.xtuml.bp.core.common.AttributeChangeModelDelta;
 import org.xtuml.bp.core.common.ClassQueryInterface_c;
 import org.xtuml.bp.core.common.ILogger;
@@ -44,8 +41,6 @@ import org.xtuml.bp.core.common.ModelChangeAdapter;
 import org.xtuml.bp.core.common.ModelChangedEvent;
 import org.xtuml.bp.core.common.ModelRoot;
 import org.xtuml.bp.core.common.NonRootModelElement;
-import org.xtuml.bp.core.common.PersistableModelComponent;
-import org.xtuml.bp.core.common.PersistenceManager;
 import org.xtuml.bp.core.common.TraceLogger;
 import org.xtuml.bp.core.common.Transaction;
 import org.xtuml.bp.core.common.TransactionManager;
@@ -211,10 +206,9 @@ abstract class OoaofooaBase extends ModelRoot
     	}
     }
     
-    @SuppressWarnings("unchecked")
     private boolean isEmpty() {
-    	Set<Class> keySet = instanceListMap.keySet();
-    	for(Class key : keySet) {
+    	Set<Class<?>> keySet = instanceListMap.keySet();
+    	for(Class<?> key : keySet) {
     		InstanceList list = instanceListMap.get(key);
     		if(list.size() > 0) {
     			return false;

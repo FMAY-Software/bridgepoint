@@ -63,6 +63,7 @@ import org.xtuml.bp.core.common.TransactionException;
 import org.xtuml.bp.core.common.TransactionManager;
 import org.xtuml.bp.core.editors.ErrorToolTip;
 import org.xtuml.bp.core.editors.ITabErrorSupport;
+import org.xtuml.bp.core.editors.TextDialog;
 import org.xtuml.bp.core.editors.association.editing.AssociationEditingSupport;
 import org.xtuml.bp.core.editors.providers.MetaModelLabelProvider;
 import org.xtuml.bp.core.inspector.ModelInspector;

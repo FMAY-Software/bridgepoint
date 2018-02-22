@@ -1,5 +1,7 @@
 package org.xtuml.bp.debug.ui.actions;
 
+import java.util.ArrayList;
+import java.util.List;
 //=====================================================================
 //
 // File:      $RCSfile: ExecuteAction.java,v $
@@ -23,28 +25,36 @@ package org.xtuml.bp.debug.ui.actions;
 //=====================================================================
 import java.util.UUID;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
-
+import org.xtuml.bp.core.BlockInStackFrame_c;
 import org.xtuml.bp.core.Block_c;
 import org.xtuml.bp.core.Body_c;
 import org.xtuml.bp.core.ComponentInstance_c;
 import org.xtuml.bp.core.CorePlugin;
 import org.xtuml.bp.core.ExecutableProperty_c;
 import org.xtuml.bp.core.FunctionBody_c;
+import org.xtuml.bp.core.FunctionParameter_c;
 import org.xtuml.bp.core.Function_c;
 import org.xtuml.bp.core.Gd_c;
 import org.xtuml.bp.core.Ifdirectiontype_c;
 import org.xtuml.bp.core.InterfaceOperation_c;
 import org.xtuml.bp.core.InterfaceSignal_c;
+import org.xtuml.bp.core.Local_c;
 import org.xtuml.bp.core.Modeleventnotification_c;
 import org.xtuml.bp.core.Ooaofooa;
 import org.xtuml.bp.core.OperationBody_c;
@@ -63,19 +73,24 @@ import org.xtuml.bp.core.RequiredSignalBody_c;
 import org.xtuml.bp.core.RequiredSignal_c;
 import org.xtuml.bp.core.Requirement_c;
 import org.xtuml.bp.core.RuntimeChannel_c;
+import org.xtuml.bp.core.RuntimeValue_c;
 import org.xtuml.bp.core.Satisfaction_c;
 import org.xtuml.bp.core.SemEvent_c;
 import org.xtuml.bp.core.SignalEvent_c;
+import org.xtuml.bp.core.StackFrame_c;
 import org.xtuml.bp.core.Stack_c;
 import org.xtuml.bp.core.StateMachineEvent_c;
 import org.xtuml.bp.core.Statement_c;
+import org.xtuml.bp.core.common.BaseModelDelta;
 import org.xtuml.bp.core.common.ClassQueryInterface_c;
 import org.xtuml.bp.core.common.ModelChangedEvent;
 import org.xtuml.bp.core.common.ModelRoot;
 import org.xtuml.bp.core.common.NonRootModelElement;
+import org.xtuml.bp.core.editors.element.parameters.providers.ParameterValueContentProvider;
 import org.xtuml.bp.core.ui.Selection;
 import org.xtuml.bp.debug.ui.launch.BPDebugUtils;
 import org.xtuml.bp.debug.ui.model.BPDebugTarget;
+import org.xtuml.bp.debug.ui.model.ParameterValueInitializer;
 import org.xtuml.bp.ui.session.SessionExplorerContentProvider;
 import org.xtuml.bp.ui.session.views.SessionExplorerView;
 
@@ -92,6 +107,8 @@ public class ExecuteAction implements IViewActionDelegate {
 	private NonRootModelElement elementToExecute = null;
 	private ComponentInstance_c engine = null;
 	private static Thread runner = null;
+	private List<RuntimeValue_c> initializedValues = new ArrayList<>();
+	private List<RuntimeValue_c> externalValues = new ArrayList<>();
 
 	/**
 	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
@@ -104,8 +121,13 @@ public class ExecuteAction implements IViewActionDelegate {
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
-	public void run(IAction action) {
-
+	public void run(IAction action) {	
+		if(!initializedValues.isEmpty()) {
+			cleanRuntimeValuesNotAssociatedWithAnEngine();
+			initializedValues.clear();
+		}
+		engine = getExecutionEngine();
+		configureParameters();
 		Runnable r = new Runnable() {
 			public void run() {
 				execute();
@@ -115,12 +137,32 @@ public class ExecuteAction implements IViewActionDelegate {
 		runner.setPriority(Thread.MIN_PRIORITY);
 		runner.start();
 	}
-
+	
+	public void cleanRuntimeValuesNotAssociatedWithAnEngine() {
+		if(elementToExecute instanceof Function_c) {
+			Local_c[] locals = Local_c
+					.getManyL_LCLsOnR3007(FunctionParameter_c.getManyS_SPARMsOnR24((Function_c) elementToExecute));
+			for(Local_c local : locals) {
+				RuntimeValue_c rtv = RuntimeValue_c.getOneRV_RVLOnR3306(local);
+				if(rtv == null) {
+					local.Dispose();
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Return running thread, used for unit testing
 	 */
 	public static Thread getRunner() {
 		return runner;
+	}
+	
+	/** allow external configuration of parameter values
+	 * 
+	 */
+	public void setParameterValues(List<RuntimeValue_c> values) {
+		this.externalValues = values;
 	}
 	
 	/**
@@ -186,14 +228,8 @@ public class ExecuteAction implements IViewActionDelegate {
 
 	private void execute() {
 		try {
-			ModelRoot modelRoot = elementToExecute.getModelRoot();
 			boolean launchSuccessful = false;
-			PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-				public void run() {
-					// execute the runnable
-					  engine = getExecutionEngine();
-				}
-			});
+			ModelRoot modelRoot = engine.getModelRoot();
 			Ooaofooa.beginVerifierExecution(engine.getExecution_engine_id());
 			try {
 				Body_c bdy = getBody();
@@ -203,6 +239,7 @@ public class ExecuteAction implements IViewActionDelegate {
 					// if a signal event, then just add it
 					// to the event queue
 					PendingEvent_c pendingEvt = new PendingEvent_c(modelRoot);
+					Ooaofooa.getDefaultInstance().fireModelElementCreated(new BaseModelDelta(Modeleventnotification_c.DELTA_NEW, pendingEvt));
 					pendingEvt.relateAcrossR2964To(engine);
 
 					StateMachineEvent_c evt = StateMachineEvent_c
@@ -251,6 +288,7 @@ public class ExecuteAction implements IViewActionDelegate {
 											.Null_unique_id(), Stack_c
 											.getOneI_STACKOnR2930(engine)
 											.getStack_id());
+							initializedValues.forEach(value -> injectParameters(sfid, value));
 							bdy.Startstackframeformessage(sfid);
 							launchSuccessful = true;
 						} else {
@@ -270,6 +308,7 @@ public class ExecuteAction implements IViewActionDelegate {
 								UUID sfid = bdy.Createstackframe(true,
 										Gd_c.Null_unique_id(),
 										stack.getStack_id());
+								initializedValues.forEach(value -> injectParameters(sfid, value));
 								bdy.Startstackframeformessage(sfid);
 								launchSuccessful = true;
 							} else {
@@ -304,6 +343,50 @@ public class ExecuteAction implements IViewActionDelegate {
 		} catch (Exception e) {
 			CorePlugin.logError("Exception encountered during execute action",
 					e);
+		}
+	}
+	
+	private void injectParameters(UUID sfid, RuntimeValue_c value) {
+		StackFrame_c frame = (StackFrame_c) Ooaofooa.getDefaultInstance().getInstanceList(StackFrame_c.class).getGlobal(sfid);
+		BlockInStackFrame_c bisf = BlockInStackFrame_c.getOneI_BSFOnR2923(frame);
+		value.relateAcrossR3310To(frame);
+		bisf.relateAcrossR3000To(Local_c.getOneL_LCLOnR3306(value));
+	}
+	
+	private final static String extensionPoint = "org.xtuml.bp.debug.ui.parameterConfigurator"; //$NON-NLS-1$//
+	private final static String executableExtensionId = "parameterConfigurator"; //$NON-NLS-1$
+	protected void configureParameters() {
+		// return if the values have been externally initialized
+		if(!externalValues.isEmpty()) {
+			initializedValues = externalValues;
+			return;
+		}
+		ParameterValueContentProvider provider = new ParameterValueContentProvider();
+		if (provider.hasChildren(elementToExecute)) {
+			initializedValues = ParameterValueInitializer
+					.initializeRuntimeValues((NonRootModelElement[]) provider.getChildren(elementToExecute));
+			IExtensionPoint point = Platform.getExtensionRegistry()
+					.getExtensionPoint(extensionPoint); // $NON-NLS-1$
+			IExtension[] extensions = point.getExtensions();
+			for (IExtension extension : extensions) {
+				// Give each registered extension a chance
+				IConfigurationElement[] configurationElements = extension.getConfigurationElements();
+				for (IConfigurationElement configurationElement : configurationElements) {
+					try {
+						Object parameterConfigurator = configurationElement
+								.createExecutableExtension(executableExtensionId); // $NON-NLS-1$
+						if (parameterConfigurator instanceof IParameterConfigurator) {
+							IParameterConfigurator configurator = (IParameterConfigurator) parameterConfigurator;
+							configurator.configureParameters(provider,
+									new StructuredSelection(provider.getChildren(elementToExecute)));
+						}
+					} catch (CoreException e) {
+						CorePlugin.logError(
+								"Unable to retrieve executable extension for the registered parameter configurator.",
+								e);
+					}
+				}
+			}
 		}
 	}
 

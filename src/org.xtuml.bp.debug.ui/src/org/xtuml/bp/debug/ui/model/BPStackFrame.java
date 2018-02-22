@@ -22,16 +22,18 @@ package org.xtuml.bp.debug.ui.model;
 //======================================================================== 
 import java.util.ArrayList;
 
-import lib.TIM;
-
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.model.IDropToFrame;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
-
 import org.xtuml.bp.core.ActionHome_c;
 import org.xtuml.bp.core.Action_c;
 import org.xtuml.bp.core.Attribute_c;
@@ -41,11 +43,11 @@ import org.xtuml.bp.core.Block_c;
 import org.xtuml.bp.core.Body_c;
 import org.xtuml.bp.core.BridgeBody_c;
 import org.xtuml.bp.core.Bridge_c;
+import org.xtuml.bp.core.ComponentInstance_c;
 import org.xtuml.bp.core.DataItemValue_c;
 import org.xtuml.bp.core.DerivedAttributeBody_c;
 import org.xtuml.bp.core.DerivedBaseAttribute_c;
 import org.xtuml.bp.core.EventQueueEntry_c;
-import org.xtuml.bp.core.ComponentInstance_c;
 import org.xtuml.bp.core.FunctionBody_c;
 import org.xtuml.bp.core.Function_c;
 import org.xtuml.bp.core.Gd_c;
@@ -78,8 +80,11 @@ import org.xtuml.bp.core.TransitionActionHome_c;
 import org.xtuml.bp.core.Transition_c;
 import org.xtuml.bp.core.common.ModelChangedEvent;
 import org.xtuml.bp.core.common.ModelRoot;
+import org.xtuml.bp.debug.ui.session.control.IDropToFrameControl;
 
-public class BPStackFrame extends BPDebugElement implements IStackFrame {
+import lib.TIM;
+
+public class BPStackFrame extends BPDebugElement implements IStackFrame, IDropToFrame {
 
 	private StackFrame_c stackFrame = null;
 	private PendingEvent_c event = null;
@@ -192,7 +197,7 @@ public class BPStackFrame extends BPDebugElement implements IStackFrame {
 	public int getCharStart() throws DebugException {
 		if (stackFrame != null) {
 			String activityText = "";
-			Object activity = getActivityContainerElement();
+			Object activity = getActivityContainerElement(getStackFrame());
 			if (activity instanceof StateMachineState_c) {
 				Action_c action = Action_c.getOneSM_ACTOnR514(
 						                  ActionHome_c.getOneSM_AHOnR513(
@@ -508,9 +513,9 @@ public class BPStackFrame extends BPDebugElement implements IStackFrame {
 		stackFrame = sf;
 	}
 	
-	public Object getActivityContainerElement() {
+	public static Object getActivityContainerElement(StackFrame_c frame) {
 		BlockInStackFrame_c bisf = null;
-		BlockInStackFrame_c [] bisfs = BlockInStackFrame_c.getManyI_BSFsOnR2923(this.getStackFrame());
+		BlockInStackFrame_c [] bisfs = BlockInStackFrame_c.getManyI_BSFsOnR2923(frame);
 		for (int i=0; i < bisfs.length; i++) {
 			if (bisfs[i].getIsexecuting()){
 				bisf = bisfs[i];
@@ -592,5 +597,39 @@ public class BPStackFrame extends BPDebugElement implements IStackFrame {
 		  return bpsf.getStackFrame() == getStackFrame() && bpsf.getEvent() == getEvent();
 		}
 		return false;
+	}
+
+	@Override
+	public boolean canDropToFrame() {
+		IDropToFrameControl dropToFrameControl = getDropToFrameControl();
+		if(dropToFrameControl != null) {
+			return dropToFrameControl.canDropToFrame((BPThread) getThread());
+		}
+		return false;
+	}
+
+	@Override
+	public void dropToFrame() throws DebugException {
+		IDropToFrameControl dropToFrameControl = getDropToFrameControl();
+		if(dropToFrameControl != null) {
+			dropToFrameControl.dropToFrame((BPThread) getThread());
+		}
+	}
+
+	private IDropToFrameControl getDropToFrameControl() {
+		IExtensionPoint point = Platform.getExtensionRegistry()
+				.getExtensionPoint("org.xtuml.bp.debug.ui.dropToFrameControl"); //$NON-NLS-1$
+		IConfigurationElement[] configurationElements = point.getConfigurationElements();
+		if (configurationElements.length > 0) {
+			/* first come first serve */
+			IConfigurationElement configuration = configurationElements[0];
+			try {
+				Object executable = configuration.createExecutableExtension("dropToFrameControl"); //$NON-NLS-1$
+				return (IDropToFrameControl) executable;
+			} catch (CoreException e) {
+				return null;
+			}
+		}
+		return null;
 	}
 }

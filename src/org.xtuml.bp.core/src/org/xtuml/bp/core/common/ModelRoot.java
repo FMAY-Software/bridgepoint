@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -129,7 +130,7 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
         return m_fullModelLoad;
     }
     
-    protected Map<Class, InstanceList> instanceListMap = new Hashtable<Class, InstanceList>();
+    protected Map<Class<?>, InstanceList> instanceListMap = new Hashtable<Class<?>, InstanceList>();
     
     // List of meta-model classes which particpate exclusively at
     // Verifier runtime. We use this list to allocate an instance
@@ -150,7 +151,7 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
     	return false;
     }
 
-    public synchronized InstanceList getInstanceList(Class type)
+    public synchronized InstanceList getInstanceList(Class<?> type)
     {
     	InstanceList list = instanceListMap.get(type);
         if(list == null || list.isEmpty()){
@@ -362,7 +363,7 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
             callFireMethod(listenerMethod);
         }
     }
-    
+
     public void fireModelElementCreated(IModelDelta modelDelta){
         getDeltaCollector().waitIfLocked();
         if(doFirePrework(modelDelta)){                              
@@ -453,29 +454,11 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
         synchronized(collectedDeltas){
             // if activeTransaction == null: do not collect delta
             if(activeTransaction != null){
-              // if the delta has already been recorded, don't add it again,
-              // just update the new value instead
-              if (modelDelta instanceof AttributeChangeModelDelta) {
-                AttributeChangeModelDelta duplicate =
-                    (AttributeChangeModelDelta)redundantDeltasMap.get(modelDelta);
-                if (duplicate != null) {
-                  // delta exists, just update the new value of the delta
-                  duplicate.setNewValue(((AttributeChangeModelDelta)modelDelta).getNewValue());
-                }
-                else {
-                  // delta does not exist, add it to the transaction
-                  collectedDeltas.add(modelDelta);
-                  redundantDeltasMap.put(modelDelta, modelDelta);
-                  ((BaseModelDelta)modelDelta).isIgnored = !toFireEvent;
-                }
-              }
-              else {
-                // not an attribute change, add it to the transaction
-                collectedDeltas.add(modelDelta);
-                ((BaseModelDelta)modelDelta).isIgnored = !toFireEvent;
-              }
+            	addToCollection(collectedDeltas, modelDelta, toFireEvent);
             }
         }
+        // add the delta to any registered collectors
+        addToRegisteredCollectors(modelDelta, toFireEvent);
         
         // transaction == null; batchListenerCount=0; instantListenerCount=0; toFireEvent = no  
         // transaction == null; batchListenerCount=0; instantListenerCount=1; toFireEvent = yes
@@ -498,10 +481,54 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
         return toFireEvent;
     }
     
-    protected boolean isChangeNotificationEnabled() {
+    /**
+     * Register a delta collector that will be given all deltas.
+     * The collector must manage its own list of deltas.
+     * @param collector
+     */
+    private static List<IDeltaCollector> registeredCollectors = new ArrayList<IDeltaCollector>();
+    public void registerDeltaCollector(IDeltaCollector collector) {
+    	registeredCollectors.add(collector);
+    }
+    
+    public void deregisterDeltaCollector(IDeltaCollector collector) {
+    	registeredCollectors.remove(collector);
+    }
+    
+	private void addToRegisteredCollectors(IModelDelta modelDelta, boolean toFireEvent) {
+		registeredCollectors.forEach(collector -> {
+			collector.addToCollection(modelDelta);
+		});
+	}
+
+	private void addToCollection(List<IModelDelta> collectedDeltas, IModelDelta modelDelta, boolean toFireEvent) {
+        // if the delta has already been recorded, don't add it again,
+        // just update the new value instead
+        if (modelDelta instanceof AttributeChangeModelDelta) {
+          AttributeChangeModelDelta duplicate =
+              (AttributeChangeModelDelta)redundantDeltasMap.get(modelDelta);
+          if (duplicate != null) {
+            // delta exists, just update the new value of the delta
+            duplicate.setNewValue(((AttributeChangeModelDelta)modelDelta).getNewValue());
+          }
+          else {
+            // delta does not exist, add it to the transaction
+            collectedDeltas.add(modelDelta);
+            redundantDeltasMap.put(modelDelta, modelDelta);
+            ((BaseModelDelta)modelDelta).isIgnored = !toFireEvent;
+          }
+        }
+        else {
+          // not an attribute change, add it to the transaction
+          collectedDeltas.add(modelDelta);
+          ((BaseModelDelta)modelDelta).isIgnored = !toFireEvent;
+        }
+	}
+
+	protected boolean isChangeNotificationEnabled() {
 		return threadsDisablingNotification.isEmpty();
     }
-
+	
     public void fireModelElementLoaded(ModelElement modelElement){
         if ((enabledEventsMask & Modeleventnotification_c.MODEL_ELEMENT_LOADED) != 0 && !getModelChangedListeners().isEmpty()){
             ListenerMethodInvoker listenerMethod = new ListenerMethodInvoker(new ModelChangedEvent(this, Modeleventnotification_c.MODEL_ELEMENT_LOADED, modelElement)){
@@ -864,7 +891,7 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
         return instance;
     }
 
-    public Map<Class, InstanceList> getILMap() {
+    public Map<Class<?>, InstanceList> getILMap() {
         return instanceListMap;
     }
 
@@ -895,5 +922,10 @@ public abstract class ModelRoot extends ModelElement implements IModelChangeProv
 	
 	public static String getAncestorCompareRootPrefix() {
 		return ancestorCompareRootId;
+	}
+
+	@Override
+	public String toString() {
+		return getId();
 	}
 }

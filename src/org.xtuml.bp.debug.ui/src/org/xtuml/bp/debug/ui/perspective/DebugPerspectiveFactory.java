@@ -55,6 +55,7 @@ public class DebugPerspectiveFactory implements IPerspectiveFactory {
     private void setContentActionSet(IPageLayout layout) {
         layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
         layout.addActionSet(IDebugUIConstants.DEBUG_ACTION_SET);
+        layout.addActionSet("com.trl.xtuml.debug.session.debugActionSet");
     }
 
     /**

@@ -156,7 +156,7 @@ public class TransactionManager {
 		return startTransaction(displayName, compoundDeltaCollector, type,
 				undoable);
 	}
-
+	
 	public Transaction startTransaction(String name,
 			SortedCompoundDeltaCollector collector) throws TransactionException {
 		return startTransaction(name, collector, Transaction.DEFAULT_TYPE);
@@ -1045,158 +1045,19 @@ public class TransactionManager {
 
 			IModelDelta[] deltas = transaction.getDeltas(modelRoots[i]);
 			// process each delta set
-			processDeltas(processNew, deltas, modelRoots[i]);
+			Transaction.processDeltas(processNew, deltas, modelRoots[i]);
 		}
 
 	}
 
-	public static void processDeltas(boolean processNew, IModelDelta[] deltas, ModelRoot modelRoot) {
-		List<Object> processedProxies = new ArrayList<Object>();
-			for (int j = 0; j < deltas.length; j++) {
-			// skip any setRepresents deltas
-			if (!(modelRoot instanceof Ooaofooa)
-					&& deltas[j] instanceof AttributeChangeModelDelta) {
-				AttributeChangeModelDelta acmd = (AttributeChangeModelDelta) deltas[j];
-				if(acmd.getAttributeName().equals("Represents")) { //$NON-NLS-1$
-					continue;
-				}
-			}
-				ModelElement modelElement = deltas[j].getModelElement();
-				NonRootModelElement nrme = (NonRootModelElement) modelElement;
-			if(nrme == null) {
-				CorePlugin.logError("Found null instance in model delta.", null);
-				continue;
-			}
-
-				// process any deletions contained in the
-				// delta set
-				if (deltas[j].getKind() == Modeleventnotification_c.DELTA_DELETE) {
-					if (nrme.delete()) {
-						Ooaofooa.getDefaultInstance().fireModelElementDeleted(
-								new BaseModelDelta(
-										Modeleventnotification_c.DELTA_DELETE,
-										nrme));
-					}
-
-					// remove the element from the current selection,
-					// as would be done if the deletion was done by a
-					// delete-action
-					Selection.getInstance().removeFromSelection(nrme);
-				}
-
-				// process attribute changes
-				if (deltas[j] instanceof AttributeChangeModelDelta) {
-					AttributeChangeModelDelta delta = (AttributeChangeModelDelta) deltas[j];
-					String setMethod = "set" + delta.getAttributeName(); // $NON-NLS-1$
-					Method method = null;
-					try {
-						Object newValue = delta.getNewValue();
-					Class<?> attributeClass = newValue != null ? Transaction
-								.getPrimitiveClass(delta.getNewValue()
-										.getClass())
-								: new Object().getClass();
-						method = nrme.getClass().getMethod(setMethod,
-								new Class[] { attributeClass });
-						Object[] arg = { delta.getNewValue() };
-						method.invoke(modelElement, arg);
-					} catch (Exception e) {
-						CorePlugin.logError(
-								"Unable to find or invoke set method.", e);
-					}
-				}
-
-				// process relationship changes
-				if (deltas[j] instanceof RelationshipChangeModelDelta) {
-					RelationshipChangeModelDelta delta = (RelationshipChangeModelDelta) deltas[j];
-					NonRootModelElement dest = (NonRootModelElement) delta
-							.getDestinationModelElement();
-
-					String relateDirection = "To"; // $NON-NLS-1$
-					String relationship = "relate"; // $NON-NLS-1$
-
-					if (delta.getKind() == Modeleventnotification_c.DELTA_ELEMENT_UNRELATED) {
-						relateDirection = "From"; // $NON-NLS-1$
-						relationship = "unrelate"; // $NON-NLS-1$
-					}
-
-					// build the method name from the delta information
-					String relateMethod = relationship
-							+ "AcrossR" // $NON-NLS-1$
-							+ delta.getRelationName() + relateDirection
-							+ delta.getRelationDirectionPhrase();
-
-					// find the method of that name and invoke it
-					try {
-						Class<?> destClass = nrme.getClass();
-						if (dest != null) {
-							destClass = dest.getClass();
-						} else {
-							Method[] methods = nrme.getClass().getMethods();
-							for (Method method : methods) {
-								if (method.getName().equals(relateMethod)) {
-									destClass = method.getParameterTypes()[0];
-									break;
-								}
-							}
-						}
-						Method method = nrme.getClass().getMethod(relateMethod,
-								new Class[] { destClass });
-						Object[] arg = new Object[1];
-						arg[0] = dest;
-						method.invoke(nrme, arg);
-					} catch (Exception e) {
-						CorePlugin.logError(
-								"Unable to find or invoke relate method.", e);
-					}
-				}
-
-				if (processNew) {
-					// process creations
-					if (deltas[j].getKind() == Modeleventnotification_c.DELTA_NEW) {
-					// merges can produce multiple copies of proxies, only create
-					// one new delta
-						if (nrme.isProxy()) {
-						if(processedProxies.contains(nrme)) {
-							continue;
-						} else {
-							processedProxies.add(nrme);
-						}
-					}
-					// skip any new deltas that still have a compare root, the compare
-					// may have required temporary proxy elements that were treated
-					// as news but exist in the target already
-					if(nrme.getModelRoot().isCompareRoot()) {
-						continue;
-						}
-						InstanceList instanceList = nrme.getModelRoot()
-								.getInstanceList(nrme.getClass());
-						synchronized (instanceList) {
-							instanceList.add(nrme);
-						}
-						nrme.addInstanceToMap(nrme.getInstanceKey());
-						if (nrme instanceof ActiveObject_c)
-							Activepoller_c.register((ActiveObject_c) nrme);
-					if(nrme.getModelRoot() instanceof Ooaofooa) {
-						Ooaofooa.getDefaultInstance().fireModelElementCreated(
-								new BaseModelDelta(
-										Modeleventnotification_c.DELTA_NEW,
-										nrme));
-					} else {
-						ModelRoot graphicsRoot = (ModelRoot) OoaofgraphicsUtil
-								.getGraphicsRoot(
-										Ooaofooa.DEFAULT_WORKING_MODELSPACE,
-										OoaofgraphicsUtil.getGraphicsClass());
-						graphicsRoot
-								.fireModelElementCreated(new BaseModelDelta(
-										Modeleventnotification_c.DELTA_NEW,
-										nrme));
-					}
-				}
-			}
-		}
-
+	public List<Transaction> getUndoStack() {
+		return undoStack;
 	}
-
+	
+	public List<Transaction> getRedoStack() {
+		return redoStack;
+	}
+	
 	public void endCollectingFor(Transaction transaction) {
 		transaction.deltaCollector.endCollecting();
 		activeTransaction = null;

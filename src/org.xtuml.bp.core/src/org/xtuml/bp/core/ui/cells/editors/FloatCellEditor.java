@@ -60,6 +60,9 @@ public class FloatCellEditor extends TextCellEditor {
 		 * Object)
 		 */
 		public String isValid(Object value) {
+			if(value instanceof Float) {
+				return null;
+			}
 			String val_str = (String) value;
 			if (val_str.length() == 0)
 				return "Value required";

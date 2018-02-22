@@ -221,6 +221,8 @@ INSERT INTO O_TFR
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// Statement.execute()
+// create an execution delta
+Transactions::insertExecutionStep(type: ModelEventNotification::EXECUTION_STEP_DELTA, element: self.convertToInstance());
 // First check for a valid stack frame id and grab the stack frame
 select one body related by self->ACT_BLK[R602]->ACT_ACT[R601];
 select any stack_frame from instances of I_STF where 
@@ -367,7 +369,7 @@ else
     end if;
   end if;
 end if;',
-	1,
+	3,
 	'',
 	"bbb7c9cf-8f48-4b18-9f26-a7354319d14f",
 	0);

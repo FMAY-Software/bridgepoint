@@ -1027,6 +1027,10 @@ public abstract class NonRootModelElement extends ModelElement implements IAdapt
 			}
 				return comp.getFile();
 			}
+		if (adapter.getName().contains("StructureEditor")) {
+			return true;
+		}
+		
 		return null;
 	}
 

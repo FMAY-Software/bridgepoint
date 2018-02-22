@@ -311,7 +311,7 @@ public class OALCompletionProcessor implements IContentAssistProcessor {
     private void parseActivityPartial( IDocument document, NonRootModelElement element, int position ) {
         if ( null != element && getNeedsParse() ) {
             ParseRunnable parseRunner = new PartialParseRunnable( element, document.get(),
-                    DocumentUtil.positionToLine( position, document ), DocumentUtil.positionToCol( position, document ) );
+                    DocumentUtil.positionToLine( position, document ), DocumentUtil.positionToCol( position, document ), null );
             parseRunner.run();
             setNeedsParse(false);
         }

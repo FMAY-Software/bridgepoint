@@ -30,6 +30,7 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.xtuml.bp.core.Attribute_c;
 import org.xtuml.bp.core.CorePlugin;
+import org.xtuml.bp.core.SimpleCoreValue_c;
 import org.xtuml.bp.core.common.NonRootModelElement;
 import org.xtuml.bp.core.inspector.IModelClassInspector;
 import org.xtuml.bp.core.inspector.ModelInspector;
@@ -55,6 +56,9 @@ public class MetaModelLabelProvider extends BaseLabelProvider implements ITableL
 			}
 		}
 		if(element instanceof NonRootModelElement) {
+			if(element instanceof SimpleCoreValue_c) {
+				return null;
+			}
 			IModelClassInspector inspector = new ModelInspector();
 			return inspector.getImage(element);
 		}

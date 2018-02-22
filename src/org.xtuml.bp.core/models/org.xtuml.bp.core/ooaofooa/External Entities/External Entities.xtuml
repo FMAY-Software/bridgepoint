@@ -290,6 +290,30 @@ INSERT INTO DIM_ELE
 	VALUES ("acc37ee1-886e-47e5-8c9c-832ce046638d",
 	0,
 	"00000000-0000-0000-0000-000000000000");
+INSERT INTO GD_GE
+	VALUES ("51885377-09c7-452c-b6dc-d2a1281b3c86",
+	"734339f1-ac44-4aee-b543-a8a885e6670b",
+	"74de35ac-74f8-4d48-8494-073ad8e2bcfb",
+	12,
+	0,
+	'org.xtuml.bp.core::ooaofooa::External Entities::Transactions');
+INSERT INTO GD_SHP
+	VALUES ("51885377-09c7-452c-b6dc-d2a1281b3c86");
+INSERT INTO GD_NCS
+	VALUES ("51885377-09c7-452c-b6dc-d2a1281b3c86");
+INSERT INTO DIM_ND
+	VALUES (200.000000,
+	150.000000,
+	"51885377-09c7-452c-b6dc-d2a1281b3c86");
+INSERT INTO DIM_GE
+	VALUES (3184.000000,
+	1584.000000,
+	"51885377-09c7-452c-b6dc-d2a1281b3c86",
+	"00000000-0000-0000-0000-000000000000");
+INSERT INTO DIM_ELE
+	VALUES ("51885377-09c7-452c-b6dc-d2a1281b3c86",
+	0,
+	"00000000-0000-0000-0000-000000000000");
 INSERT INTO DIM_DIA
 	VALUES ("734339f1-ac44-4aee-b543-a8a885e6670b",
 	'',
@@ -3818,6 +3842,63 @@ INSERT INTO S_BPARM
 	'');
 INSERT INTO PE_PE
 	VALUES ("f5fca9e3-9eba-4c8b-9f16-9f79f8b6cf9a",
+	1,
+	"53bf3c8b-adde-4d47-8f16-aba92cc91cb2",
+	"00000000-0000-0000-0000-000000000000",
+	5);
+INSERT INTO S_EE
+	VALUES ("74de35ac-74f8-4d48-8494-073ad8e2bcfb",
+	'Transactions',
+	'Import:org.xtuml.bp.core.common.*;',
+	'Transactions',
+	"00000000-0000-0000-0000-000000000000",
+	'',
+	'Transactions',
+	1);
+INSERT INTO S_BRG
+	VALUES ("90c20548-b04b-449f-9a20-010a30a9b62f",
+	"74de35ac-74f8-4d48-8494-073ad8e2bcfb",
+	'insertExecutionStep',
+	'Creates an execution step delta and adds it to any collectors.
+
+Translate:native',
+	0,
+	"ba5eda7a-def5-0000-0000-000000000000",
+	'if(p_Type == Modeleventnotification_c.EXECUTION_STEP_DELTA) {
+	Ooaofooa.getDefaultInstance().doFirePrework(new BaseModelDelta(8192, (ModelElement) p_Element));
+}',
+	0,
+	'',
+	0);
+INSERT INTO S_BPARM
+	VALUES ("5c351751-fb7d-48d2-bc3b-39421915e2a0",
+	"90c20548-b04b-449f-9a20-010a30a9b62f",
+	'type',
+	"8672d1f0-ac73-4097-a597-505333093f53",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
+INSERT INTO S_DT_PROXY
+	VALUES ("8672d1f0-ac73-4097-a597-505333093f53",
+	"00000000-0000-0000-0000-000000000000",
+	'ModelEventNotification',
+	'This enumeration defines all possible changes that can occur to a model.  
+The ALL_EVENTS enumerator is the sum of all values. 
+It also defines the delta kinds in case of a MODEL_ELEMENT_CHANGED event type. ',
+	'',
+	'../Datatypes/Datatypes.xtuml');
+INSERT INTO S_BPARM
+	VALUES ("cb8cf079-0248-43c4-bca7-85b2b416a062",
+	"90c20548-b04b-449f-9a20-010a30a9b62f",
+	'element',
+	"bc3722c8-5188-4529-8519-cf9eb9816b17",
+	0,
+	'',
+	"5c351751-fb7d-48d2-bc3b-39421915e2a0",
+	'');
+INSERT INTO PE_PE
+	VALUES ("74de35ac-74f8-4d48-8494-073ad8e2bcfb",
 	1,
 	"53bf3c8b-adde-4d47-8f16-aba92cc91cb2",
 	"00000000-0000-0000-0000-000000000000",

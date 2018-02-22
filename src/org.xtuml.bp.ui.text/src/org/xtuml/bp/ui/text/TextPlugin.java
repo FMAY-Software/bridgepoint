@@ -196,7 +196,7 @@ public class TextPlugin extends OALEditorPlugin
                                     AllActivityModifier modifier = new AllActivityModifier(
                                         pkg, monitor);
                                     modifier
-                                        .processAllActivities(AllActivityModifier.PARSE);
+                                        .processAllActivities(AllActivityModifier.PARSE, null);
                                 }
                             }
                         }

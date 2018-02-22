@@ -22,20 +22,11 @@
 
 package org.xtuml.bp.als.oal;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.UUID;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-
 import org.xtuml.bp.core.ActionHome_c;
 import org.xtuml.bp.core.Action_c;
 import org.xtuml.bp.core.Actiondialect_c;
@@ -58,7 +49,6 @@ import org.xtuml.bp.core.InstanceStateMachine_c;
 import org.xtuml.bp.core.InterfaceReference_c;
 import org.xtuml.bp.core.ModelClass_c;
 import org.xtuml.bp.core.MooreActionHome_c;
-import org.xtuml.bp.core.Ooaofooa;
 import org.xtuml.bp.core.Operation_c;
 import org.xtuml.bp.core.Package_c;
 import org.xtuml.bp.core.PackageableElement_c;
@@ -146,12 +136,12 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 		m_pm = monitor;
 	}
 
-	public void processAllActivities(int op) {
-		processAllActivities(op, true);
+	public void processAllActivities(int op, ModelRoot modelRoot) {
+		processAllActivities(op, true, modelRoot);
 	}
 
-	public void processAllActivities(int op, boolean disposeBeforeParse) {
-		processAllActivities(op, disposeBeforeParse, false);
+	public void processAllActivities(int op, boolean disposeBeforeParse, ModelRoot modelRoot) {
+		processAllActivities(op, disposeBeforeParse, false, modelRoot);
 	}
 
 	/**
@@ -174,7 +164,7 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 	 *                              is then started.   This was done as part of 
 	 *                              issue dts0100900268.
 	 **/
-	public void processAllActivities(int op, boolean disposeBeforeParse, boolean includeSharedFragments) {
+	public void processAllActivities(int op, boolean disposeBeforeParse, boolean includeSharedFragments, ModelRoot modelRoot) {
 
 		if (op == PARSE) {
 			ModelRoot mr = null;
@@ -182,6 +172,9 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 				mr = m_parent.getModelRoot();
 			else
 				mr = m_root;
+			if (modelRoot != null) {
+				mr = modelRoot;
+			}
 			PersistableModelComponent.ensureDataTypesAvailable(mr);
 			if (disposeBeforeParse) {
 				// Dispose existing data before starting the parse
@@ -192,7 +185,7 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 		if (activitiesToParse != null) {
 			if (m_pm != null)
 				m_pm.beginTask(pmMessages[op], countAllActivities());
-			doForAll(activitiesToParse, op);
+			doForAll(activitiesToParse, op, modelRoot);
 		} else {
 			// Clear the current search scope
 			resetAllPackages();
@@ -241,42 +234,42 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 			if (m_pm != null) {
 				m_pm.beginTask(pmMessages[op], countAllActivities());
 				if (!m_pm.isCanceled())
-					doForAll(m_func_set, op);
+					doForAll(m_func_set, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_bridge_set, op);
+					doForAll(m_bridge_set, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_op_set, op);
+					doForAll(m_op_set, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_mda_set, op);
+					doForAll(m_mda_set, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_ism_state_set, op);
+					doForAll(m_ism_state_set, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_csm_state_set, op);
+					doForAll(m_csm_state_set, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_ism_transitions, op);
+					doForAll(m_ism_transitions, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_csm_transitions, op);
+					doForAll(m_csm_transitions, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_provided_operations, op);
+					doForAll(m_provided_operations, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_provided_signals, op);
+					doForAll(m_provided_signals, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_required_operations, op);
+					doForAll(m_required_operations, op, modelRoot);
 				if (!m_pm.isCanceled())
-					doForAll(m_required_signals, op);
+					doForAll(m_required_signals, op, modelRoot);
 			} else {
-				doForAll(m_func_set, op);
-				doForAll(m_bridge_set, op);
-				doForAll(m_op_set, op);
-				doForAll(m_mda_set, op);
-				doForAll(m_ism_state_set, op);
-				doForAll(m_csm_state_set, op);
-				doForAll(m_ism_transitions, op);
-				doForAll(m_csm_transitions, op);
-				doForAll(m_provided_operations, op);
-				doForAll(m_provided_signals, op);
-				doForAll(m_required_operations, op);
-				doForAll(m_required_signals, op);
+				doForAll(m_func_set, op, modelRoot);
+				doForAll(m_bridge_set, op, modelRoot);
+				doForAll(m_op_set, op, modelRoot);
+				doForAll(m_mda_set, op, modelRoot);
+				doForAll(m_ism_state_set, op, modelRoot);
+				doForAll(m_csm_state_set, op, modelRoot);
+				doForAll(m_ism_transitions, op, modelRoot);
+				doForAll(m_csm_transitions, op, modelRoot);
+				doForAll(m_provided_operations, op, modelRoot);
+				doForAll(m_provided_signals, op, modelRoot);
+				doForAll(m_required_operations, op, modelRoot);
+				doForAll(m_required_signals, op, modelRoot);
 			}
 		}
 		if (m_pm != null)
@@ -290,13 +283,13 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 		}
 	}
 
-	private void doForAll(Object[] activities, int op) {
+	private void doForAll(Object[] activities, int op, ModelRoot modelRoot) {
 		if (activities == null)
 			return;
 
 		for (int i = 0; i < activities.length; ++i) {
 			if (op == PARSE)
-				parseAction(activities[i]);
+				parseAction(activities[i], modelRoot);
 			else if (op == CLEAR) {
 				// When running with no editors there is no placeholder.
 				// This comment is left here to call out that placeholder is 
@@ -309,7 +302,7 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 		}
 	}
 
-	public void parseAction(Object modelElement) {
+	public void parseAction(Object modelElement, ModelRoot modelRoot) {
 
         // get dialect
         int dialect = Actiondialect_c.OOA_UNINITIALIZED_ENUM;
@@ -420,7 +413,7 @@ public class ParserAllActivityModifier implements IAllActivityModifier {
 			CorePlugin.logError("AllActivityModifier.parseAction:Unrecognized Action Home", ia);
 		}
 
-		parseRunner = new ParseRunnable((NonRootModelElement) modelElement, oalText);
+		parseRunner = new ParseRunnable((NonRootModelElement) modelElement, oalText, modelRoot);
 		parseRunner.run();
 
 	}

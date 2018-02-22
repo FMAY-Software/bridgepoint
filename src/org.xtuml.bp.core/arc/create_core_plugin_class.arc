@@ -1002,7 +1002,7 @@ public class CorePlugin extends AbstractUIPlugin {
             Object [] args = new Object[] { nrme, monitor };
             IAllActivityModifier aam = (IAllActivityModifier)ctor.newInstance(args);
 
-            aam.processAllActivities(IAllActivityModifier.PARSE);
+            aam.processAllActivities(IAllActivityModifier.PARSE, null);
         } catch (ClassNotFoundException cnf) {
             CorePlugin.logError("Problem loading activity parser ", cnf);
         } catch (IllegalAccessException i) {
@@ -1038,7 +1038,7 @@ public class CorePlugin extends AbstractUIPlugin {
 				Object[] args = new Object[] { root, activities, monitor };
 				IAllActivityModifier aam = (IAllActivityModifier) ctor.newInstance(args);
 
-				aam.processAllActivities(IAllActivityModifier.PARSE);
+				aam.processAllActivities(IAllActivityModifier.PARSE, null);
 			} catch (ClassNotFoundException cnf) {
 				CorePlugin.logError("Problem loading activity parser ", cnf);
 			} catch (IllegalAccessException i) {

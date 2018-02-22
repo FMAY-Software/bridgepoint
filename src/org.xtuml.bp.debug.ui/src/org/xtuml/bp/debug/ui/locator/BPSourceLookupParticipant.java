@@ -34,7 +34,7 @@ public class BPSourceLookupParticipant extends AbstractSourceLookupParticipant {
 	public String getSourceName(Object object) throws CoreException {
 		PlaceHolderManager plhMgr = PlaceHolderManager.getDefaultInstance();
 		if (object instanceof BPStackFrame) {
-            NonRootModelElement activity = (NonRootModelElement)((BPStackFrame)object).getActivityContainerElement();
+            NonRootModelElement activity = (NonRootModelElement) BPStackFrame.getActivityContainerElement(((BPStackFrame) object).getStackFrame());
             if (activity != null) {
               ModelElementID modelElementID = ModelAdapter.getModelElementAdapter(activity).createModelElementID(activity);
               if (modelElementID != null) {

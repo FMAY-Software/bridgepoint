@@ -1,27 +1,5 @@
 package org.xtuml.bp.debug.ui.launch;
 
-//====================================================================
-//
-//File:      $RCSfile: VerifiableElementComposite.java,v $
-//Version:   $Revision: 1.16 $
-//Modified:  $Date: 2013/01/10 23:17:50 $
-//
-//(c) Copyright 2005-2014 by Mentor Graphics Corp.  All rights reserved.
-//
-//====================================================================
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not 
-// use this file except in compliance with the License.  You may obtain a copy 
-// of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software 
-// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
-// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   See the 
-// License for the specific language governing permissions and limitations under
-// the License.
-//======================================================================== 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -36,9 +14,7 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.ICellModifier;
-import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.SWT;
@@ -59,7 +35,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
-
 import org.xtuml.bp.core.ComponentReference_c;
 import org.xtuml.bp.core.Component_c;
 import org.xtuml.bp.core.CorePlugin;
@@ -196,7 +171,8 @@ public class VerifiableElementComposite extends Composite implements Listener,
 										.Get_ooa_id().toString(),
 								VerifierLaunchConfiguration.ConfigurationAttribute.DefaultMultiplicity,
 								VerifierLaunchConfiguration.ConfigurationAttribute.DefaultInitializer,
-								VerifierLaunchConfiguration.DISABLED_STATE);
+								VerifierLaunchConfiguration.DISABLED_STATE,
+								VerifierLaunchConfiguration.ConfigurationAttribute.DefaultParameterInitialization);
 				vector.add(entry);
 			}
 			initializeChildren(vector, VerifierLaunchContentProvider.instance()
@@ -545,6 +521,7 @@ public class VerifiableElementComposite extends Composite implements Listener,
 		if (element instanceof NonRootModelElement) {
 			String initializer = VerifierLaunchConfiguration.ConfigurationAttribute.DefaultInitializer;
 			String enablement = VerifierLaunchConfiguration.DISABLED_STATE; // $NON-NLS-1$
+			String parameterInitialization = VerifierLaunchConfiguration.ConfigurationAttribute.DefaultParameterInitialization;
 			Vector<String> vector = getElementVector(BPDebugUtils
 					.getElementsSystem(element).getName());
 
@@ -569,11 +546,15 @@ public class VerifiableElementComposite extends Composite implements Listener,
 						.getInternalElement(
 								match,
 								VerifierLaunchConfiguration.ConfigurationAttribute.State);
+				parameterInitialization = VerifierLaunchConfiguration
+						.getInternalElement(
+								match,
+								VerifierLaunchConfiguration.ConfigurationAttribute.ParameterInitialization);
 			}
 			String newEntry = VerifierLaunchConfiguration
 					.getComponentSelectionString(((NonRootModelElement) element)
 							.Get_ooa_id().toString(), newValue.toString(), initializer,
-							enablement);
+							enablement, parameterInitialization);
 			vector.add(newEntry);
 			tableTreeViewer.refresh(element);
 			if (!newEntry.equals(match)) {

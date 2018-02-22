@@ -26,4 +26,5 @@ public interface IDeltaCollector {
 	public void waitIfLocked();
 	public void startCollecting(Transaction transaction) throws TransactionException;
 	public void endCollecting();
+	default public void addToCollection(IModelDelta delta) {}
 }

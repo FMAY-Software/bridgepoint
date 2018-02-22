@@ -48,6 +48,14 @@ public class BooleanCellEditor extends ComboBoxCellEditor {
 	 */
 	protected void doSetValue(Object value)
 	{
+		if(value instanceof Boolean) {
+			if((Boolean) value) {
+				super.doSetValue(new Integer(1));
+			} else {
+				super.doSetValue(new Integer(0));
+			}
+			return;
+		}
         if (Boolean.valueOf((String)value))
 			super.doSetValue(new Integer(1));
         else

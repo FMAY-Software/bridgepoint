@@ -61,7 +61,7 @@ public class ParseAllActivitiesAction implements IActionDelegate
                         ModelRoot.disableChangeNotification();
                         try {
                         AllActivityModifier aam = new AllActivityModifier((Component_c)context, monitor);
-                        aam.processAllActivities(AllActivityModifier.PARSE);
+                        aam.processAllActivities(AllActivityModifier.PARSE, null);
                         }
                         finally {
                         	ModelRoot.enableChangeNotification();
@@ -70,7 +70,7 @@ public class ParseAllActivitiesAction implements IActionDelegate
                         ModelRoot.disableChangeNotification();
                         try {
                         AllActivityModifier aam = new AllActivityModifier((Package_c)context, monitor);
-                        aam.processAllActivities(AllActivityModifier.PARSE);
+                        aam.processAllActivities(AllActivityModifier.PARSE, null);
                         }
                         finally {
                         	ModelRoot.enableChangeNotification();
@@ -80,7 +80,7 @@ public class ParseAllActivitiesAction implements IActionDelegate
                         ModelRoot.disableChangeNotification();
                         try {
                         AllActivityModifier aam = new AllActivityModifier((SystemModel_c)context, monitor);
-                        aam.processAllActivities(AllActivityModifier.PARSE);
+                        aam.processAllActivities(AllActivityModifier.PARSE, null);
                         }
                         finally {
                         	ModelRoot.enableChangeNotification();

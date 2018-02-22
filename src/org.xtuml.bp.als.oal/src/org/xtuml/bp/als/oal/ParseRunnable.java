@@ -2,35 +2,36 @@ package org.xtuml.bp.als.oal;
 
 import java.io.StringReader;
 
-import org.eclipse.core.resources.IMarker;
+import org.xtuml.bp.core.Block_c;
+import org.xtuml.bp.core.CorePlugin;
+import org.xtuml.bp.core.Ooaofooa;
+import org.xtuml.bp.core.common.ModelRoot;
+import org.xtuml.bp.core.common.NonRootModelElement;
 
 import antlr.RecognitionException;
 import antlr.TokenStreamException;
 import antlr.TokenStreamRecognitionException;
-
-import org.xtuml.bp.core.Block_c;
-import org.xtuml.bp.core.CorePlugin;
-import org.xtuml.bp.core.Ooaofooa;
-import org.xtuml.bp.core.common.NonRootModelElement;
 
 public class ParseRunnable implements Runnable {
 	protected String m_document;
 	protected NonRootModelElement m_modelElement;
 	protected int m_contentAssistLine;
 	protected int m_contentAssistCol;
+	private ModelRoot m_modelRoot;
 
 	/**
 	 * Constructor.
 	 */
-	public ParseRunnable(NonRootModelElement modelElement, String document) {
-	    this( modelElement, document, 0, 0 );
+	public ParseRunnable(NonRootModelElement modelElement, String document, ModelRoot modelRoot) {
+	    this( modelElement, document, 0, 0, modelRoot);
 	}
 
-	public ParseRunnable(NonRootModelElement modelElement, String document, int contentAssistLine, int contentAssistCol ) {
+	public ParseRunnable(NonRootModelElement modelElement, String document, int contentAssistLine, int contentAssistCol, ModelRoot modelRoot ) {
 		m_modelElement = modelElement;
 		m_document = document;
 	    m_contentAssistLine = contentAssistLine;
 	    m_contentAssistCol = contentAssistCol;
+	    m_modelRoot = modelRoot;
 	}
 
 	public void run() {
@@ -39,10 +40,11 @@ public class ParseRunnable implements Runnable {
 		// been disposed, then no parse should be performed
 		if (m_modelElement == null || m_modelElement.isOrphaned())
 			return;
-
-		Ooaofooa modelRoot = (Ooaofooa) m_modelElement.getModelRoot();
+		if(m_modelRoot == null) {
+			m_modelRoot = (Ooaofooa) m_modelElement.getModelRoot();
+		}
 		OalLexer lexer = new OalLexer(new StringReader(m_document));
-		TextParser parser = new TextParser(modelRoot, lexer, m_contentAssistLine, m_contentAssistCol);
+		TextParser parser = new TextParser((Ooaofooa) m_modelRoot, lexer, m_contentAssistLine, m_contentAssistCol);
 		boolean parseCompleted = false;
 		boolean problemsFound = false;
 		try {
@@ -50,7 +52,7 @@ public class ParseRunnable implements Runnable {
 			parser.action(m_modelElement, false);
 			parseCompleted = true;
 		} catch (TokenStreamException e) {
-			Block_c.Clearcurrentscope(modelRoot, parser.m_oal_context.m_act_id);
+			Block_c.Clearcurrentscope((Ooaofooa) m_modelRoot, parser.m_oal_context.m_act_id);
 			if (e instanceof TokenStreamRecognitionException) {
 				TokenStreamRecognitionException tsre = (TokenStreamRecognitionException) e;
 				parser.reportError(tsre.recog);
@@ -59,16 +61,16 @@ public class ParseRunnable implements Runnable {
 				CorePlugin.logError(errorMsg, e);
 			}
 		} catch (RecognitionException e) {
-			Block_c.Clearcurrentscope(modelRoot, parser.m_oal_context.m_act_id);
+			Block_c.Clearcurrentscope((Ooaofooa) m_modelRoot, parser.m_oal_context.m_act_id);
 			parser.reportError(e);
 		} catch (InterruptedException e) {
 			// The parse was canceled, we don't need to report an
 			// error in this situation, but we do need to note that
 			// the parse did not complete (parseCompleted is false).
-			Block_c.Clearcurrentscope(modelRoot, parser.m_oal_context.m_act_id);
+			Block_c.Clearcurrentscope((Ooaofooa) m_modelRoot, parser.m_oal_context.m_act_id);
 		} catch (Throwable t) {
 			String errorMsg = "Internal parser error.  Parsing thread interrupted pre-maturely.  OAL in this action home caused an exception in the parser."; //$NON-NLS-1$
-			Block_c.Clearcurrentscope(modelRoot, parser.m_oal_context.m_act_id);
+			Block_c.Clearcurrentscope((Ooaofooa) m_modelRoot, parser.m_oal_context.m_act_id);
 
 			// This throwable catches all the un-checked exceptions that occur
 			// in the thread, and logs them

@@ -187,4 +187,17 @@ public class BPStateBreakpoint extends BPBreakpoint {
 			System.out.println("Breakpoint not found.");
 		}
 	}
+
+	public StateBreakpoint_c getTargetBreakpoint() {
+		IMarker m = getMarker();
+		Ooaofooa modelRoot = Ooaofooa.getInstance(m.getAttribute(MODELROOT_ID, ""), true);
+		final UUID ooa_id = UUID.fromString(m.getAttribute(MODELELEMENT_ID, ""));
+		StateBreakpoint_c sbp = StateBreakpoint_c.StateBreakpointInstance(modelRoot, new ClassQueryInterface_c() {
+			public boolean evaluate(Object candidate) {
+				StateBreakpoint_c selected = (StateBreakpoint_c)candidate;
+				return selected.getSmstt_id().equals(ooa_id);
+			}
+		});
+		return sbp;
+	}
 }

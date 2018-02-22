@@ -35,17 +35,17 @@ public interface IModelDelta {
      * Modeleventnotification_c class.
 	 * @return the kind of this model delta      
 	 */
-	public int getKind();
+     public int getKind();
 	
 	/**
 	 * 
 	 * @return the source Model element of the model change event. 
 	 *         This value must not be null.           
 	 */
-	public ModelElement getModelElement();
+	default public ModelElement getModelElement() { return null; } ;
 	
 	/**
 	 * Allow setting the model element associated with this delta
 	 */
-	public void setModelElement(ModelElement element);
+	default public void setModelElement(ModelElement element) { };
 }

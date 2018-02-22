@@ -144,7 +144,39 @@ public class ElementEditingSupport extends EditingSupport {
 			if(objEle.getName().equals("Descrip")) {
 				return null;
 			}
-			CellEditor editor = null;
+		}
+		CellEditor editor = getCoreCellEditor(element);
+		if(editor == null) {
+			return editor;
+		}
+		editor.addListener(new ICellEditorListener() {
+
+			@Override
+			public void editorValueChanged(boolean oldValidState, boolean newValidState) {
+				if(!newValidState) {
+					((ITabErrorSupport) viewer).setErrorMessage(editor.getErrorMessage());
+				} else {
+					((ITabErrorSupport) viewer).setErrorMessage("");
+				}
+			}
+
+			@Override
+			public void cancelEditor() {
+				((ITabErrorSupport) viewer).setErrorMessage("");
+			}
+
+			@Override
+			public void applyEditorValue() {
+				((ITabErrorSupport) viewer).setErrorMessage("");
+			}
+		});
+		return editor;
+	}
+
+	protected CellEditor getCoreCellEditor(Object element) {
+		CellEditor editor = null;
+		if(element instanceof ObjectElement) {
+			ObjectElement objEle = (ObjectElement) element;
 			if(((NonRootModelElement) objEle.getParent()).getModelRoot() instanceof Ooaofooa) {
 				editor = CellModifierProvider.getCellEditor(
 						(NonRootModelElement) objEle.getParent(), (Composite) viewer.getControl(),
@@ -154,31 +186,8 @@ public class ElementEditingSupport extends EditingSupport {
 						(NonRootModelElement) objEle.getParent(), (Composite) viewer.getControl(),
 						objEle);				
 			}
-			final CellEditor finalEditor = editor;
-			editor.addListener(new ICellEditorListener() {
-				
-				@Override
-				public void editorValueChanged(boolean oldValidState, boolean newValidState) {
-						if(!newValidState) {
-							((ITabErrorSupport) viewer).setErrorMessage(finalEditor.getErrorMessage());
-						} else {
-							((ITabErrorSupport) viewer).setErrorMessage("");
-						}
-				}
-				
-				@Override
-				public void cancelEditor() {
-					((ITabErrorSupport) viewer).setErrorMessage("");
-				}
-				
-				@Override
-				public void applyEditorValue() {
-					((ITabErrorSupport) viewer).setErrorMessage("");
-				}
-			});
-			return editor;
 		}
-		return null;
+		return editor;
 	}
 
 }

@@ -115,7 +115,7 @@ public class AllActivityModifier extends ParserAllActivityModifier
 		PlaceHolderManager placeHolderManager = PlaceHolderManager.getDefaultInstance();
 		placeHolderManager.setParseInProgress(true);
 
-    	super.processAllActivities(op, disposeBeforeParse, includeSharedFragments);
+    	super.processAllActivities(op, disposeBeforeParse, includeSharedFragments, null);
     	
     	placeHolderManager.setParseInProgress(false);
     }

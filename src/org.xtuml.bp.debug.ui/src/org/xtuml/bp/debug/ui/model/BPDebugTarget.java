@@ -9,8 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import lib.TIM;
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
@@ -31,12 +29,9 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.internal.ui.DebugUIPlugin;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
 import org.xtuml.bp.core.ComponentInstanceContainer_c;
 import org.xtuml.bp.core.ComponentInstance_c;
 import org.xtuml.bp.core.ComponentReference_c;
@@ -57,10 +52,17 @@ import org.xtuml.bp.core.PackageableElement_c;
 import org.xtuml.bp.core.PendingEvent_c;
 import org.xtuml.bp.core.PortReference_c;
 import org.xtuml.bp.core.Port_c;
+import org.xtuml.bp.core.ProvidedExecutableProperty_c;
+import org.xtuml.bp.core.ProvidedOperation_c;
+import org.xtuml.bp.core.ProvidedSignal_c;
 import org.xtuml.bp.core.Provision_c;
+import org.xtuml.bp.core.RequiredExecutableProperty_c;
+import org.xtuml.bp.core.RequiredOperation_c;
+import org.xtuml.bp.core.RequiredSignal_c;
 import org.xtuml.bp.core.Requirement_c;
 import org.xtuml.bp.core.Runstatetype_c;
 import org.xtuml.bp.core.RuntimeChannel_c;
+import org.xtuml.bp.core.RuntimeValue_c;
 import org.xtuml.bp.core.Satisfaction_c;
 import org.xtuml.bp.core.SelfQueueEntry_c;
 import org.xtuml.bp.core.StackFrame_c;
@@ -69,6 +71,7 @@ import org.xtuml.bp.core.SystemModel_c;
 import org.xtuml.bp.core.Timer_c;
 import org.xtuml.bp.core.User_c;
 import org.xtuml.bp.core.Vm_c;
+import org.xtuml.bp.core.common.BaseModelDelta;
 import org.xtuml.bp.core.common.ModelChangedEvent;
 import org.xtuml.bp.core.common.ModelRoot;
 import org.xtuml.bp.core.common.NonRootModelElement;
@@ -82,7 +85,10 @@ import org.xtuml.bp.debug.ui.actions.ExecuteAction;
 import org.xtuml.bp.debug.ui.launch.BPDebugUtils;
 import org.xtuml.bp.debug.ui.launch.VerifierLaunchConfiguration;
 import org.xtuml.bp.debug.ui.launch.VerifierLaunchContentProvider;
+import org.xtuml.bp.debug.ui.session.control.ExecutionModelRoot;
 import org.xtuml.bp.ui.text.activity.AllActivityModifier;
+
+import lib.TIM;
 
 public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 
@@ -95,6 +101,7 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 	private boolean isDeterministic = true;
 	private int executionTimeout = 0;
 	private BPExecutionTimer executionTimer;
+	private ExecutionModelRoot launchRoot;
 	
 	private static ArrayList<BPDebugTarget> targets = 
 		                                         new ArrayList<BPDebugTarget>();
@@ -125,6 +132,7 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 		try {
 			if (checkProject(projectName)) {
 				setSystem();
+				launchRoot = ExecutionModelRoot.getInstance("/" + projectName + "/" + launch.toString());
 				if (checkModels(config)) {
 					isDeterministic = config.getAttribute(VerifierLaunchConfiguration.ATTR_ENABLEDETERMINISM, false);
 					boolean useSimTime = config.getAttribute(VerifierLaunchConfiguration.ATTR_ENABLESIMTIME, false);
@@ -186,9 +194,11 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 							public void run() {
 								User_c.Loginfo("Executing the specified initializer.");
 								waitForExecutionToStart();
-								
+								NonRootModelElement element = getElementForInitializer(initializer);
+								List<RuntimeValue_c> initializedParameterValues = VerifierLaunchConfiguration.getInitializedParameters(config, element, initializer);
 								// Execute this initializer
 								ExecuteAction action = new ExecuteAction();
+								action.setParameterValues(initializedParameterValues);
 								action.setOALElement(initializer);
 								action.run(null);					
 							}
@@ -207,6 +217,62 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 				this);
 	}
 	
+	protected NonRootModelElement getElementForInitializer(NonRootModelElement initializer) {
+		if(initializer instanceof RequiredSignal_c) {
+			Component_c component = Component_c.getOneC_COnR4010(
+					Port_c.getOneC_POOnR4016(InterfaceReference_c.getOneC_IROnR4009(Requirement_c.getOneC_ROnR4500(
+							RequiredExecutableProperty_c.getOneSPR_REPOnR4502((RequiredSignal_c) initializer)))));
+			ComponentReference_c reference = ComponentReference_c.getOneCL_ICOnR4707(
+					PortReference_c.getOneCL_POROnR4708(ImportedReference_c.getOneCL_IIROnR4701(InterfaceReference_c
+							.getOneC_IROnR4009(Requirement_c.getOneC_ROnR4500(RequiredExecutableProperty_c
+									.getOneSPR_REPOnR4502((RequiredSignal_c) initializer))))));
+			if(reference != null) {
+				return reference;
+			}
+			return component;
+		}
+		if(initializer instanceof RequiredOperation_c) {
+			Component_c component = Component_c.getOneC_COnR4010(
+					Port_c.getOneC_POOnR4016(InterfaceReference_c.getOneC_IROnR4009(Requirement_c.getOneC_ROnR4500(
+							RequiredExecutableProperty_c.getOneSPR_REPOnR4502((RequiredOperation_c) initializer)))));
+			ComponentReference_c reference = ComponentReference_c.getOneCL_ICOnR4707(
+					PortReference_c.getOneCL_POROnR4708(ImportedReference_c.getOneCL_IIROnR4701(InterfaceReference_c
+							.getOneC_IROnR4009(Requirement_c.getOneC_ROnR4500(RequiredExecutableProperty_c
+									.getOneSPR_REPOnR4502((RequiredOperation_c) initializer))))));
+			if(reference != null) {
+				return reference;
+			}
+			return component;			
+		}
+		if(initializer instanceof ProvidedSignal_c) {
+			Component_c component = Component_c.getOneC_COnR4010(
+					Port_c.getOneC_POOnR4016(InterfaceReference_c.getOneC_IROnR4009(Provision_c.getOneC_POnR4501(
+							ProvidedExecutableProperty_c.getOneSPR_PEPOnR4503((ProvidedSignal_c) initializer)))));
+			ComponentReference_c reference = ComponentReference_c.getOneCL_ICOnR4707(
+					PortReference_c.getOneCL_POROnR4708(ImportedReference_c.getOneCL_IIROnR4701(InterfaceReference_c
+							.getOneC_IROnR4009(Provision_c.getOneC_POnR4501(ProvidedExecutableProperty_c
+									.getOneSPR_PEPOnR4503((ProvidedSignal_c) initializer))))));
+			if(reference != null) {
+				return reference;
+			}
+			return component;					
+		}
+		if(initializer instanceof ProvidedOperation_c) {
+			Component_c component = Component_c.getOneC_COnR4010(
+					Port_c.getOneC_POOnR4016(InterfaceReference_c.getOneC_IROnR4009(Provision_c.getOneC_POnR4501(
+							ProvidedExecutableProperty_c.getOneSPR_PEPOnR4503((ProvidedOperation_c) initializer)))));
+			ComponentReference_c reference = ComponentReference_c.getOneCL_ICOnR4707(
+					PortReference_c.getOneCL_POROnR4708(ImportedReference_c.getOneCL_IIROnR4701(InterfaceReference_c
+							.getOneC_IROnR4009(Provision_c.getOneC_POnR4501(ProvidedExecutableProperty_c
+									.getOneSPR_PEPOnR4503((ProvidedOperation_c) initializer))))));
+			if(reference != null) {
+				return reference;
+			}
+			return component;					
+		}
+		return null;
+	}
+
 	private void waitForExecutionToStart() {
 		boolean allRunning = false;
 		while (!allRunning) {
@@ -348,13 +414,12 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 				// loop below because there may be a shared model root in the 
 				// selected elements that we parsed individually below.
 				for (int k = 0; k < elements.length; k++) {
-					AllActivityModifier.disposeAllBodies(elements[k].getModelRoot());
+					AllActivityModifier.disposeAllBodies(launchRoot);
 				}
 
 				for (int k = 0; k < elements.length; k++) {
 					ComponentInstance_c exEng = null;
 					AllActivityModifier aam = null;
-					ModelRoot modelRoot = null;
 					NonRootModelElement element = null;
 					int multiplicity = VerifierLaunchConfiguration
 							.getElementMultiplicityFromConfiguration(
@@ -366,15 +431,20 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
                                   ! (parent instanceof ComponentReference_c) ) {
 						  for (int i = 0; i < multiplicity; i++) {
 							  Component_c comp = (Component_c) elements[k];
-							  exEng = new ComponentInstance_c(comp.getModelRoot());
+								ExecutionModelRoot ciRoot = ExecutionModelRoot.getInstance(
+										launchRoot.getId() + comp.getModelRoot().getId() + ":" + comp.getName() + ":" + comp.getName());
+							  ciRoot.setParent(launchRoot);
+							  exEng = new ComponentInstance_c(ciRoot);
+							  launchRoot.setCoreRoot(comp.getModelRoot().getId());
+							  Ooaofooa.getDefaultInstance().fireModelElementCreated(
+										new BaseModelDelta(Modeleventnotification_c.DELTA_NEW, exEng));
 							  if (comp.getIsrealized()) {
 								  setUpForRealizedExecution(comp, exEng);
 							  }
 							  comp.relateAcrossR2955To(exEng);
 							  aam = new AllActivityModifier(comp, null);
-							  modelRoot = comp.getModelRoot();
 							  element = comp;
-							  launchElement(aam, modelRoot, exEng, null, element, elements, false, isDeterministic());
+							  launchElement(aam, ciRoot, exEng, null, element, elements, false, isDeterministic());
 							}
 						}
 						// all elements processed
@@ -391,7 +461,7 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 						// all elements already launched
 						continue;
 					}
-					launchElement(aam, modelRoot, exEng, null, element, elements, false, isDeterministic());
+					launchElement(aam, launchRoot, exEng, null, element, elements, false, isDeterministic());
 				}
 				for (int k = 0; k < elements.length; k++) {
 				  wireChannels(elements[k], null);
@@ -530,7 +600,6 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 		VerifierThread = new Thread(new Runnable() {
 			public void run() {
 			  Iterator<BPThread> it = syncThreads.iterator();
-			  ModelRoot root = Ooaofooa.getDefaultInstance();
 			  while (it.hasNext()) {
                 BPThread current = it.next();
                 ComponentInstance_c fee = current.getEngine();
@@ -881,16 +950,20 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
                    elementIsBeingLaunched(icomponent, elementsBeingLaunched))) {
 		  // launch the component
 		  Component_c component = Component_c.getOneC_COnR4201(icomponent);
-		  ComponentInstance_c exEng = new ComponentInstance_c(component
-				.getModelRoot());
+			ExecutionModelRoot ciRoot = ExecutionModelRoot
+					.getInstance(launchRoot.getId() + component.getModelRoot().getId() + ":" + component.getName());
+		  ciRoot.setParent(launchRoot);
+		  ComponentInstance_c exEng = new ComponentInstance_c(ciRoot);
+		  launchRoot.setCoreRoot(component
+				.getModelRoot().getId());
+		  Ooaofooa.getDefaultInstance().fireModelElementCreated(new BaseModelDelta(Modeleventnotification_c.DELTA_NEW, exEng));
 		  if (component.getIsrealized()) {
 			  setUpForRealizedExecution(component, exEng);
 		  }
 		  icomponent.relateAcrossR2963To(exEng);
       addComponentInstanceToContainmentHierarchy(parentExEng, exEng);
 		  AllActivityModifier aam = new AllActivityModifier(component, null);
-		  ModelRoot modelRoot = component.getModelRoot();
-		  launchElement(aam, modelRoot, exEng, parentExEng, icomponent, elementsBeingLaunched, true, deterministic);
+		  launchElement(aam,  ciRoot, exEng, parentExEng, icomponent, elementsBeingLaunched, true, deterministic);
 	  }
 	}
 
@@ -901,7 +974,7 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
     try {
       exEng.Initializeclasses();
       try {
-        aam.processAllActivities(AllActivityModifier.PARSE, false, true);
+        aam.processAllActivities(AllActivityModifier.PARSE, false, true, exEng.getModelRoot());
       } catch (Exception e) {
         CorePlugin.logError("Exception encountered during Verifier launch", e);
       }
@@ -943,8 +1016,11 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
                 launchImportedComponent((ComponentReference_c) nrme, exEng,
                     elementsBeingLaunched, parentIsComponentReference, deterministic);
               } else if (nrme instanceof Component_c) {
-                ComponentInstance_c childEng = new ComponentInstance_c(
-                    ((Component_c) nrme).getModelRoot());
+				ExecutionModelRoot ciRoot = ExecutionModelRoot.getInstance(
+					launchRoot.getId() + nrme.getModelRoot().getId() + ":" + nrme.getName());
+            	ciRoot.setParent(launchRoot);
+                ComponentInstance_c childEng = new ComponentInstance_c(ciRoot);
+                launchRoot.setCoreRoot(nrme.getModelRoot().getId());
 				  if (((Component_c)nrme).getIsrealized()) {
 					  setUpForRealizedExecution(comp, childEng);
 				  }
@@ -952,7 +1028,6 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
                 addComponentInstanceToContainmentHierarchy(exEng, childEng);
                 ((Component_c) nrme).relateAcrossR2955To(childEng);
                 aam = new AllActivityModifier((Component_c) nrme, null);
-                modelRoot = ((Component_c) nrme).getModelRoot();
                 launchElement(aam, modelRoot, childEng, exEng,
                     (Component_c) nrme, elementsBeingLaunched,
                     parentIsComponentReference, deterministic);
@@ -968,7 +1043,7 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
     ModelChangedEvent mce = new ModelChangedEvent(modelRoot,
         Modeleventnotification_c.MODEL_EXECUTION_STOPPED, element);
     Ooaofooa.getDefaultInstance().fireModelEvent(mce);
-  }
+  } 
 
 	private void wireChannels(ComponentInstance_c exEng,
       ComponentInstance_c parentExEng) {
@@ -1354,8 +1429,7 @@ public class BPDebugTarget extends BPDebugElement implements IDebugTarget {
 	private void wireChannel(NonRootModelElement element, boolean isRequired,
 			ComponentInstance_c src, ComponentInstance_c target, RuntimeChannel_c parentRt) {
 		if (src != null && target != null) {
-			RuntimeChannel_c channel = new RuntimeChannel_c(element
-					.getModelRoot());
+			RuntimeChannel_c channel = new RuntimeChannel_c(launchRoot);
 			boolean wireForwards = isRequired;
 			if (element instanceof Satisfaction_c) {
 				channel.relateAcrossR2969To((Satisfaction_c) element);

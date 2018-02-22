@@ -32,7 +32,7 @@ public interface IAllActivityModifier {
             "Clearing all activities..."
         };
         
-    public void processAllActivities(int op);
+    public void processAllActivities(int op, ModelRoot modelRoot);
 
     public void clearActionPlaceholder(Object o_input);
 }

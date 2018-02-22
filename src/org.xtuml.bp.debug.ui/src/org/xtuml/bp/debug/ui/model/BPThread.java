@@ -29,9 +29,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
-import lib.LOG;
-import lib.TIM;
-
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
@@ -44,7 +41,6 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
-
 import org.xtuml.bp.core.BlockInStackFrame_c;
 import org.xtuml.bp.core.ComponentInstance_c;
 import org.xtuml.bp.core.ComponentReference_c;
@@ -59,8 +55,6 @@ import org.xtuml.bp.core.Runstatetype_c;
 import org.xtuml.bp.core.SelfQueueEntry_c;
 import org.xtuml.bp.core.StackFrame_c;
 import org.xtuml.bp.core.Stack_c;
-import org.xtuml.bp.core.Statement_c;
-import org.xtuml.bp.core.SystemModel_c;
 import org.xtuml.bp.core.Timer_c;
 import org.xtuml.bp.core.Vm_c;
 import org.xtuml.bp.core.common.IModelChangeListener;
@@ -70,6 +64,9 @@ import org.xtuml.bp.debug.java.access.VerifierInvocationHandler;
 import org.xtuml.bp.ui.explorer.MonitorView;
 import org.xtuml.bp.ui.graphics.editor.GraphicalEditor;
 import org.xtuml.bp.ui.session.views.SessionExplorerView;
+
+import lib.LOG;
+import lib.TIM;
 
 public class BPThread extends BPDebugElement implements IThread {
 	private ComponentInstance_c engine = null;
@@ -637,35 +634,33 @@ public class BPThread extends BPDebugElement implements IThread {
 	}
 
 	public void terminate() throws DebugException {
-      try {
-		suspend();
-		int retries = 30;
-		while (!isSuspended() && retries > 0 && engine != null) {
-		  try {
-			Thread.sleep(50);
-			retries--;
-			if (engine != null && Thread.holdsLock(engine)) {
-			  engine.notify();
+		try {
+			suspend();
+			int retries = 30;
+			while (!isSuspended() && retries > 0 && engine != null) {
+				try {
+					Thread.sleep(50);
+					retries--;
+					if (engine != null && Thread.holdsLock(engine)) {
+						engine.notify();
+					}
+				} catch (InterruptedException ie) {
+					// Do nothing
+				}
 			}
-		  }
-		  catch (InterruptedException ie) {
-			  // Do nothing
-		  }
+			resetClassLoader();
+			stop();
+			fireTerminateEvent();
+			debugTarget.remove(this);
+			IDebugTarget dbgTgt = getDebugTarget();
+			if (dbgTgt instanceof BPDebugTarget) {
+				((BPDebugTarget) dbgTgt).Notify();
+			}
+			Vm_c.removeStack(runner);
+		} finally {
+			// Create a transaction so that viewers will update one more time
+			BPThread.refreshVerifierViews();
 		}
-		resetClassLoader();
-		stop();
-		fireTerminateEvent();
-		debugTarget.remove(this);
-		IDebugTarget dbgTgt = getDebugTarget();
-		if (dbgTgt instanceof BPDebugTarget) {
-		  ((BPDebugTarget)dbgTgt).Notify();
-		}
-		Vm_c.removeStack(runner);
-      }
-      finally {
-		// Create a transaction so that viewers will update one more time
-		BPThread.refreshVerifierViews();
-      }
 	}
 	public void resetClassLoader() 
 	{
@@ -693,7 +688,6 @@ public class BPThread extends BPDebugElement implements IThread {
 		*/ 
 	}
 	public void stop() {
-		ModelRoot root = null;
 		ComponentInstance_c engineTemp = null;
 		try {
 			if (engine != null) {
@@ -720,7 +714,6 @@ public class BPThread extends BPDebugElement implements IThread {
 	    			engine.setRealizedby(null);
 	    		}
 				engineTemp =engine;
-				root = engine.getModelRoot();
 				engine.Stop();
 				if (engine != null) {
 					engine.Dispose();

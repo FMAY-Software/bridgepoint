@@ -47,12 +47,12 @@ public class MetaModelContentProvider implements ITreeContentProvider {
 		return null;
 	}
 	
-	public final boolean hasChildren(Object element) {
+	public boolean hasChildren(Object element) {
 		Object[] children = getChildren(element);
 		return children.length != 0;
 	}
 		
-	public final Object[] getChildren(Object element) {
+	public Object[] getChildren(Object element) {
 		// if the element is the selection instance the
 		// elements in the selection are the children
 		if(element instanceof Selection) {

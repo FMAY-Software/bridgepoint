@@ -25,6 +25,9 @@ Export-Package: org.xtuml.bp.core.editors,
  org.xtuml.bp.core.editors.association.dialogs,
  org.xtuml.bp.core.editors.association.editing,
  org.xtuml.bp.core.editors.editing,
+ org.xtuml.bp.core.editors.element,
+ org.xtuml.bp.core.editors.element.parameters,
+ org.xtuml.bp.core.editors.element.parameters.providers,
  org.xtuml.bp.core.editors.providers
 Bundle-ClassPath: editors.jar
 Bundle-Vendor: xtUML.org

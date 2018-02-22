@@ -140,7 +140,7 @@ public class OpenDeclarationAction implements IEditorActionDelegate {
 	
 	private void parseBody(NonRootModelElement modelElement, int offsetWithinLine, IDocument doc) {
 		// run a parse of this body
-		ParseRunnable parseRunner = new ParseRunnable(modelElement, doc.get());
+		ParseRunnable parseRunner = new ParseRunnable(modelElement, doc.get(), null);
 		parseRunner.run();						
 	}
 

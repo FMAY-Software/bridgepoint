@@ -724,7 +724,7 @@ public class PlaceHolderManager {
 											modelRoot, elementsToParse.get(
 													modelRoot).toArray(),
 											new NullProgressMonitor());
-									aam.processAllActivities(IAllActivityModifier.PARSE);
+									aam.processAllActivities(IAllActivityModifier.PARSE, null);
 								}
 							}
 						});

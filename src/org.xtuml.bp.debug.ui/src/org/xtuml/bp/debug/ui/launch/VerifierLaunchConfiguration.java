@@ -2,7 +2,6 @@ package org.xtuml.bp.debug.ui.launch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -17,18 +16,18 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.debug.ui.IDebugUIConstants;
-import org.eclipse.ui.IPageLayout;
-
 import org.xtuml.bp.core.ComponentReference_c;
 import org.xtuml.bp.core.Component_c;
 import org.xtuml.bp.core.CorePlugin;
 import org.xtuml.bp.core.Ooaofooa;
 import org.xtuml.bp.core.Package_c;
 import org.xtuml.bp.core.PackageableElement_c;
+import org.xtuml.bp.core.RuntimeValue_c;
 import org.xtuml.bp.core.SystemModel_c;
 import org.xtuml.bp.core.common.NonRootModelElement;
+import org.xtuml.bp.core.editors.element.parameters.providers.ParameterValueContentProvider;
 import org.xtuml.bp.debug.ui.BPDebugUIPlugin;
+import org.xtuml.bp.debug.ui.model.ParameterValueInitializer;
 
 public class VerifierLaunchConfiguration {
 	/* Launch configuration type identifier */
@@ -55,7 +54,7 @@ public class VerifierLaunchConfiguration {
 	private static final String INTERNAL_SEPARATOR = "_INTERNALTOKEN_";
 
 	public enum ConfigurationAttribute {
-		ElementID(0), Multiplicity(1), Initializer(2), State(3);
+		ElementID(0), Multiplicity(1), Initializer(2), State(3), ParameterInitialization(4);
 
 		private int filePosition;
 
@@ -71,13 +70,14 @@ public class VerifierLaunchConfiguration {
 		public static String DefaultMultiplicity = "1";
 		public static String DefaultInitializer = "None";
 		public static String DefaultState = ENABLED_STATE;
+		public static String DefaultParameterInitialization = "";
 	}
 
 	/**
 	 * Create a string suitable for writing to the launch config file
 	 */
 	public static String getComponentSelectionString(String elementID,
-			String multiplicity, String initializer, String state) {
+			String multiplicity, String initializer, String state, String parameterInitialization) {
 		String result = elementID.toString();
 		result += VerifierLaunchConfiguration.INTERNAL_SEPARATOR;
 		result += multiplicity;
@@ -85,6 +85,8 @@ public class VerifierLaunchConfiguration {
 		result += initializer;
 		result += VerifierLaunchConfiguration.INTERNAL_SEPARATOR;
 		result += state;
+		result += VerifierLaunchConfiguration.INTERNAL_SEPARATOR;
+		result += parameterInitialization;
 		return result;
 	}
 
@@ -96,7 +98,8 @@ public class VerifierLaunchConfiguration {
 		return getComponentSelectionString(elementID,
 				ConfigurationAttribute.DefaultMultiplicity,
 				ConfigurationAttribute.DefaultInitializer,
-				ConfigurationAttribute.DefaultState);
+				ConfigurationAttribute.DefaultState,
+				ConfigurationAttribute.DefaultParameterInitialization);
 
 	}
 
@@ -163,6 +166,13 @@ public class VerifierLaunchConfiguration {
 				resultAttribute = modelSelectionAttributes[ConfigurationAttribute.State
 						.getPosition()];
 				break;
+			case ParameterInitialization:
+				int position = ConfigurationAttribute.ParameterInitialization.getPosition();
+				if(position < modelSelectionAttributes.length) {
+					resultAttribute = modelSelectionAttributes[ConfigurationAttribute.ParameterInitialization
+				        .getPosition()];
+				}
+				break;
 			}
 		}
 		return resultAttribute;
@@ -205,6 +215,12 @@ public class VerifierLaunchConfiguration {
 			                      						.getPosition()];
 			String state = modelSelectionAttributes[ConfigurationAttribute.State
 			                						.getPosition()];
+			int position = ConfigurationAttribute.ParameterInitialization
+					.getPosition();
+			String parameterInitialization = "";
+			if(position < modelSelectionAttributes.length) {
+				parameterInitialization = modelSelectionAttributes[position];
+			}
 			switch (attribute) {
 			case ElementID:
 				elementID = newAttributeValue;
@@ -218,8 +234,11 @@ public class VerifierLaunchConfiguration {
 			case State:
 				state = newAttributeValue;
 				break;
+			case ParameterInitialization:
+				parameterInitialization = newAttributeValue;
+				break;
 			}
-			resultString = getComponentSelectionString(elementID, multiplicity, initializer, state);
+			resultString = getComponentSelectionString(elementID, multiplicity, initializer, state, parameterInitialization);
 		}
 		return resultString;
 	}
@@ -310,6 +329,10 @@ public class VerifierLaunchConfiguration {
 							case State:
 								result = getInternalElement(modelStrings[i],
 										ConfigurationAttribute.State);
+								break;
+							case ParameterInitialization:
+								result = getInternalElement(modelStrings[i],
+										ConfigurationAttribute.ParameterInitialization);
 								break;
 							}
 						}
@@ -638,6 +661,21 @@ public class VerifierLaunchConfiguration {
 			}
 		}
 		return buffer;
+	}
+	
+	public static String getParameterInitializationFromConfiguration(ILaunchConfiguration configuration,
+			NonRootModelElement element) {
+		return String.valueOf(VerifierLaunchConfiguration.getElementFromConfiguration(configuration, element,
+				ConfigurationAttribute.ParameterInitialization));
+	}
+
+	public static List<RuntimeValue_c> getInitializedParameters(ILaunchConfiguration configuration, NonRootModelElement element, NonRootModelElement initializer) {
+		ParameterValueContentProvider provider = new ParameterValueContentProvider();
+		List<RuntimeValue_c> runtimeValues = ParameterValueInitializer
+				.initializeRuntimeValues(provider.getChildren(initializer));
+		String runtimeConfigurationString = getParameterInitializationFromConfiguration(configuration, element);
+		runtimeValues.forEach(runtimeValue -> VerifiableElementInitializerDialog.initializeParameterValue(runtimeConfigurationString, runtimeValue));
+		return runtimeValues;
 	}
 
 }

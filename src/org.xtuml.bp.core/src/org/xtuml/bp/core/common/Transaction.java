@@ -234,148 +234,7 @@ public class Transaction {
 			IModelDelta[] deltas = getDeltas(modelRoots[i]);
 			// process each delta set
 			for (int j = deltas.length - 1; j >= 0; j--) {
-				ModelElement modelElement = deltas[j].getModelElement();
-				NonRootModelElement nrme = (NonRootModelElement) modelElement;
-
-				// restore any moves
-				if (deltas[j].getKind() == Modeleventnotification_c.DELTA_MODEL_ELEMENT_MOVE) {
-					// switch the move and process it later in ComponentTransactionListener
-					ModelElementMovedModelDelta memd = (ModelElementMovedModelDelta) deltas[j];
-					NonRootModelElement dest = memd.getDestination();
-					NonRootModelElement element = (NonRootModelElement) memd.getModelElement();
-					NonRootModelElement src = (NonRootModelElement) memd.getSource();
-					modelRoots[i].fireModelElementMoved((new ModelElementMovedModelDelta(element, src,
-							dest)));
-				}
-				// restore any deletions contained in the
-				// delta set
-				if (deltas[j].getKind() == Modeleventnotification_c.DELTA_DELETE) {
-					if(nrme.getModelRoot() instanceof Ooaofooa) {
-						// if the element is a container to a model root, we must
-						// add that model root and the graphical one back into the
-						// model root map
-						Ooaofooa foundInstance = EclipseOoaofooa
-									.findInstance(nrme.getModelRoot().getId());
-						if(foundInstance == null) {
-							EclipseOoaofooa.addInstance(nrme.getModelRoot());
-							Object graphicsRoot = locateGraphicsRoot(nrme);
-							if(graphicsRoot != null)
-								OoaofgraphicsUtil.addInstance(graphicsRoot);
-						}
-					} else {
-						if (nrme.getModelRoot().getClass() == OoaofgraphicsUtil
-								.getGraphicsClass()) {
-							Object foundInstance = OoaofgraphicsUtil
-								.findInstance(nrme.getModelRoot()
-									.getId());
-							if(foundInstance == null) {
-								OoaofgraphicsUtil.addInstance(nrme.getModelRoot());
-							}
-						}
-					}
-					// if the element deleted was converted to a proxy
-					if(nrme.isProxy()) {
-						// convert it to a non proxy
-						nrme.convertFromProxy();
-					}
-					InstanceList instanceList = nrme.getModelRoot().getInstanceList(nrme.getClass());
-					synchronized (instanceList) {
-						instanceList.add(nrme);
-					}
-                    nrme.addInstanceToMap(nrme.getInstanceKey());
-					if (nrme instanceof ActiveObject_c)
-						Activepoller_c.register((ActiveObject_c) nrme);
-					modelRoots[i].fireModelElementCreated(new BaseModelDelta(
-							Modeleventnotification_c.DELTA_NEW, nrme));
-				}
-
-				// restore all previous attribute values
-				if (deltas[j] instanceof AttributeChangeModelDelta) {
-					AttributeChangeModelDelta delta = (AttributeChangeModelDelta) deltas[j];
-					String setMethod = "set" + delta.getAttributeName(); // $NON-NLS-1$
-					Method method = null;
-					try {
-                        Object oldValue = delta.getOldValue();
-                        Class<?> attributeClass = oldValue != null ?
-                            getPrimitiveClass(delta.getOldValue().getClass())
-                            : new Object().getClass();
-                        method = nrme.getClass().getMethod(
-                            setMethod, new Class[] {attributeClass});
-						Object[] arg = {delta.getOldValue()};
-						method.invoke(modelElement, arg);
-					} catch (Exception e) {
-						CorePlugin.logError(
-								"Unable to find or invoke set method.", e);
-					}
-				}
-
-				// restore all relationship changes that were made
-				if (deltas[j] instanceof RelationshipChangeModelDelta) {
-					RelationshipChangeModelDelta delta = (RelationshipChangeModelDelta) deltas[j];
-					NonRootModelElement dest = (NonRootModelElement) delta
-							.getDestinationModelElement();
-
-					String direction = "To"; // $NON-NLS-1$
-					String relationship = "relate"; // $NON-NLS-1$
-
-					if (delta.getKind() == Modeleventnotification_c.DELTA_ELEMENT_RELATED) {
-						direction = "From"; // $NON-NLS-1$
-						relationship = "unrelate"; // $NON-NLS-1$
-					}
-
-					// build the method name from the delta information
-					String relateMethod = relationship + "AcrossR" // $NON-NLS-1$
-							+ delta.getRelationName() + direction
-							+ delta.getRelationDirectionPhrase();
-
-                    // find the method of that name and invoke it
-					try {
-                        Method method = nrme.getClass().getMethod(relateMethod,
-								new Class[] { dest.getClass() });
-						Object[] arg = new Object[1];
-						arg[0] = dest;
-						method.invoke(nrme, arg);
-					} catch (Exception e) {
-						CorePlugin.logError(
-								"Unable to find or invoke relate method.", e);
-					}
-				}
-
-				// remove any elements that were created during the
-				// transaction
-				if (deltas[j].getKind() == Modeleventnotification_c.DELTA_NEW) {
-					if (nrme.delete()) {
-						// we do not need listeners enabled here, the original
-						// transaction will contain all deltas to fully restore
-						// the model (there is a specific case in merge that shows
-						// a graphic being disposed when we do not want)  This
-						// is shown when merging an unformalize and then undoing
-						// and re-merging it
-						try {
-							ModelRoot.disableChangeNotification();
-							modelRoots[i]
-									.fireModelElementDeleted(new BaseModelDelta(
-											Modeleventnotification_c.DELTA_DELETE, nrme));
-						} finally {
-							ModelRoot.enableChangeNotification();
-						}
-					}
-					// remove the PMC if it exists and we are reverting
-					// in memory, otherwise it will be removed by the
-					// ComponentTransactionListener
-					if(inMemoryOnly) {
-						if(nrme.getPersistableComponent() != null) {
-							if(nrme.getPersistableComponent().getRootModelElement() == nrme) {
-								nrme.getPersistableComponent().deleteSelf();
-							}
-						}
-					}
-
-                    // remove the element from the current selection,
-                    // as would be done if the deletion was done by a delete-action
-                    Selection.getInstance().removeFromSelection(nrme);
-				}
-
+				revertDelta(deltas[j], modelRoots[i], inMemoryOnly, this);
 				pm.worked(1);
 			}
 		}
@@ -388,6 +247,160 @@ public class Transaction {
 		pm.done();
 	}
 
+	public static void revertDelta(IModelDelta delta, ModelRoot modelRoot, boolean inMemoryOnly, Transaction transaction) {
+		ModelElement modelElement = delta.getModelElement();
+		NonRootModelElement nrme = (NonRootModelElement) modelElement;
+
+		// restore any moves
+		if (delta.getKind() == Modeleventnotification_c.DELTA_MODEL_ELEMENT_MOVE) {
+			// switch the move and process it later in ComponentTransactionListener
+			ModelElementMovedModelDelta memd = (ModelElementMovedModelDelta) delta;
+			NonRootModelElement dest = memd.getDestination();
+			NonRootModelElement element = (NonRootModelElement) memd.getModelElement();
+			NonRootModelElement src = (NonRootModelElement) memd.getSource();
+			modelRoot.fireModelElementMoved((new ModelElementMovedModelDelta(element, src,
+					dest)));
+		}
+		// restore any deletions contained in the
+		// delta set
+		if (delta.getKind() == Modeleventnotification_c.DELTA_DELETE) {
+			if(nrme.getModelRoot() instanceof Ooaofooa) {
+				// if the element is a container to a model root, we must
+				// add that model root and the graphical one back into the
+				// model root map
+				Ooaofooa foundInstance = EclipseOoaofooa
+							.findInstance(nrme.getModelRoot().getId());
+				if(foundInstance == null) {
+					EclipseOoaofooa.addInstance(nrme.getModelRoot());
+					// the following is only concerned with transactions
+					if(transaction != null) {
+						Object graphicsRoot = transaction.locateGraphicsRoot(nrme);
+						if(graphicsRoot != null)
+							OoaofgraphicsUtil.addInstance(graphicsRoot);
+					}
+				}
+			} else {
+				if (nrme.getModelRoot().getClass() == OoaofgraphicsUtil
+						.getGraphicsClass()) {
+					Object foundInstance = OoaofgraphicsUtil
+						.findInstance(nrme.getModelRoot()
+							.getId());
+					if(foundInstance == null) {
+						OoaofgraphicsUtil.addInstance(nrme.getModelRoot());
+					}
+				}
+			}
+			// if the element deleted was converted to a proxy
+			if(nrme.isProxy()) {
+				// convert it to a non proxy
+				nrme.convertFromProxy();
+			}
+			InstanceList instanceList = nrme.getModelRoot().getInstanceList(nrme.getClass());
+			synchronized (instanceList) {
+				instanceList.add(nrme);
+			}
+            nrme.addInstanceToMap(nrme.getInstanceKey());
+			if (nrme instanceof ActiveObject_c)
+				Activepoller_c.register((ActiveObject_c) nrme);
+			modelRoot.fireModelElementCreated(new BaseModelDelta(
+					Modeleventnotification_c.DELTA_NEW, nrme));
+		}
+
+		// restore all previous attribute values
+		if (delta instanceof AttributeChangeModelDelta) {
+			AttributeChangeModelDelta aDelta = (AttributeChangeModelDelta) delta;
+			String setMethod = "set" + aDelta.getAttributeName(); // $NON-NLS-1$
+			Method method = null;
+			try {
+                Object oldValue = aDelta.getOldValue();
+                Class<?> attributeClass = oldValue != null ?
+                    getPrimitiveClass(aDelta.getOldValue().getClass())
+                    : new Object().getClass();
+                    // use additional try/catch here
+                    // to fallback to object parameter type
+                    // if necessary
+                    try {
+                    	method = nrme.getClass().getMethod(
+                    			setMethod, new Class[] {attributeClass});
+                    } catch (NoSuchMethodException nme) {
+                    	method = nrme.getClass().getMethod(setMethod, new Class[] {Object.class});
+                    }
+				Object[] arg = {aDelta.getOldValue()};
+				method.invoke(modelElement, arg);
+			} catch (Exception e) {
+				CorePlugin.logError(
+						"Unable to find or invoke set method.", e);
+			}
+		}
+
+		// restore all relationship changes that were made
+		if (delta instanceof RelationshipChangeModelDelta) {
+			RelationshipChangeModelDelta rDelta = (RelationshipChangeModelDelta) delta;
+			NonRootModelElement dest = (NonRootModelElement) rDelta
+					.getDestinationModelElement();
+
+			String direction = "To"; // $NON-NLS-1$
+			String relationship = "relate"; // $NON-NLS-1$
+
+			if (delta.getKind() == Modeleventnotification_c.DELTA_ELEMENT_RELATED) {
+				direction = "From"; // $NON-NLS-1$
+				relationship = "unrelate"; // $NON-NLS-1$
+			}
+
+			// build the method name from the delta information
+			String relateMethod = relationship + "AcrossR" // $NON-NLS-1$
+					+ rDelta.getRelationName() + direction
+					+ rDelta.getRelationDirectionPhrase();
+
+            // find the method of that name and invoke it
+			try {
+                Method method = nrme.getClass().getMethod(relateMethod,
+						new Class[] { dest.getClass() });
+				Object[] arg = new Object[1];
+				arg[0] = dest;
+				method.invoke(nrme, arg);
+			} catch (Exception e) {
+				CorePlugin.logError(
+						"Unable to find or invoke relate method.", e);
+			}
+		}
+
+		// remove any elements that were created during the
+		// transaction
+		if (delta.getKind() == Modeleventnotification_c.DELTA_NEW) {
+			if (nrme.delete()) {
+				// we do not need listeners enabled here, the original
+				// transaction will contain all deltas to fully restore
+				// the model (there is a specific case in merge that shows
+				// a graphic being disposed when we do not want)  This
+				// is shown when merging an unformalize and then undoing
+				// and re-merging it
+				try {
+					ModelRoot.disableChangeNotification();
+					modelRoot
+							.fireModelElementDeleted(new BaseModelDelta(
+									Modeleventnotification_c.DELTA_DELETE, nrme));
+				} finally {
+					ModelRoot.enableChangeNotification();
+				}
+			}
+			// remove the PMC if it exists and we are reverting
+			// in memory, otherwise it will be removed by the
+			// ComponentTransactionListener
+			if(inMemoryOnly) {
+				if(nrme.getPersistableComponent() != null) {
+					if(nrme.getPersistableComponent().getRootModelElement() == nrme) {
+						nrme.getPersistableComponent().deleteSelf();
+					}
+				}
+			}
+
+            // remove the element from the current selection,
+            // as would be done if the deletion was done by a delete-action
+            Selection.getInstance().removeFromSelection(nrme);
+		}
+	}
+	
     private Object locateGraphicsRoot(NonRootModelElement nrme) {
 		IModelDelta[] deltas = getDeltas((ModelRoot) OoaofgraphicsUtil.getGraphicsRoot(
 				Ooaofooa.getDefaultInstance().getId(), OoaofgraphicsUtil
@@ -435,5 +448,141 @@ public class Transaction {
 	public void setModelDeltas(IModelDelta[] deltas, ModelRoot root) {
 		deltasMap.clear();
 		deltasMap.put(root, deltas);
+	}
+
+	public static void processDeltas(boolean processNew, IModelDelta[] deltas, ModelRoot modelRoot) {
+		List<Object> processedProxies = new ArrayList<Object>();
+		for (int j = 0; j < deltas.length; j++) {
+			processDelta(processNew, deltas[j], modelRoot, processedProxies);
+		}
+	}
+	
+	public static void processDelta(boolean processNew, IModelDelta delta, ModelRoot modelRoot, List<Object> processedProxies) {
+		// skip any setRepresents deltas
+		if (!(modelRoot instanceof Ooaofooa) && delta instanceof AttributeChangeModelDelta) {
+			AttributeChangeModelDelta acmd = (AttributeChangeModelDelta) delta;
+			if (acmd.getAttributeName().equals("Represents")) { //$NON-NLS-1$
+				return;
+			}
+		}
+		ModelElement modelElement = delta.getModelElement();
+		NonRootModelElement nrme = (NonRootModelElement) modelElement;
+		if (nrme == null) {
+			CorePlugin.logError("Found null instance in model delta.", null);
+			return;
+		}
+
+		// process any deletions contained in the
+		// delta set
+		if (delta.getKind() == Modeleventnotification_c.DELTA_DELETE) {
+			if (nrme.delete()) {
+				Ooaofooa.getDefaultInstance()
+						.fireModelElementDeleted(new BaseModelDelta(Modeleventnotification_c.DELTA_DELETE, nrme));
+			}
+
+			// remove the element from the current selection,
+			// as would be done if the deletion was done by a
+			// delete-action
+			Selection.getInstance().removeFromSelection(nrme);
+		}
+
+		// process attribute changes
+		if (delta instanceof AttributeChangeModelDelta) {
+			AttributeChangeModelDelta aDelta = (AttributeChangeModelDelta) delta;
+			String setMethod = "set" + aDelta.getAttributeName(); // $NON-NLS-1$
+			Method method = null;
+			try {
+				Object newValue = aDelta.getNewValue();
+				Class<?> attributeClass = newValue != null
+						? Transaction.getPrimitiveClass(aDelta.getNewValue().getClass()) : new Object().getClass();
+				try {
+					method = nrme.getClass().getMethod(setMethod, new Class[] { attributeClass });
+				} catch (NoSuchMethodException e) {
+					method = nrme.getClass().getMethod(setMethod, new Class[] { Object.class });
+				}
+				Object[] arg = { aDelta.getNewValue() };
+				method.invoke(modelElement, arg);
+			} catch (Exception e) {
+				CorePlugin.logError("Unable to find or invoke set method.", e);
+			}
+		}
+
+		// process relationship changes
+		if (delta instanceof RelationshipChangeModelDelta) {
+			RelationshipChangeModelDelta rDelta = (RelationshipChangeModelDelta) delta;
+			NonRootModelElement dest = (NonRootModelElement) rDelta.getDestinationModelElement();
+
+			String relateDirection = "To"; // $NON-NLS-1$
+			String relationship = "relate"; // $NON-NLS-1$
+
+			if (delta.getKind() == Modeleventnotification_c.DELTA_ELEMENT_UNRELATED) {
+				relateDirection = "From"; // $NON-NLS-1$
+				relationship = "unrelate"; // $NON-NLS-1$
+			}
+
+			// build the method name from the delta information
+			String relateMethod = relationship + "AcrossR" // $NON-NLS-1$
+					+ rDelta.getRelationName() + relateDirection + rDelta.getRelationDirectionPhrase();
+
+			// find the method of that name and invoke it
+			try {
+				Class<?> destClass = nrme.getClass();
+				if (dest != null) {
+					destClass = dest.getClass();
+				} else {
+					Method[] methods = nrme.getClass().getMethods();
+					for (Method method : methods) {
+						if (method.getName().equals(relateMethod)) {
+							destClass = method.getParameterTypes()[0];
+							break;
+						}
+					}
+				}
+				Method method = nrme.getClass().getMethod(relateMethod, new Class[] { destClass });
+				Object[] arg = new Object[1];
+				arg[0] = dest;
+				method.invoke(nrme, arg);
+			} catch (Exception e) {
+				CorePlugin.logError("Unable to find or invoke relate method.", e);
+			}
+		}
+
+		if (processNew) {
+			// process creations
+			if (delta.getKind() == Modeleventnotification_c.DELTA_NEW) {
+				// merges can produce multiple copies of proxies, only create
+				// one new delta
+				if (nrme.isProxy() && processedProxies != null) {
+					if (processedProxies.contains(nrme)) {
+						return;
+					} else {
+						processedProxies.add(nrme);
+					}
+				}
+				// skip any new deltas that still have a compare root, the
+				// compare
+				// may have required temporary proxy elements that were treated
+				// as news but exist in the target already
+				if (nrme.getModelRoot().isCompareRoot()) {
+					return;
+				}
+				InstanceList instanceList = nrme.getModelRoot().getInstanceList(nrme.getClass());
+				synchronized (instanceList) {
+					instanceList.add(nrme);
+				}
+				nrme.addInstanceToMap(nrme.getInstanceKey());
+				if (nrme instanceof ActiveObject_c)
+					Activepoller_c.register((ActiveObject_c) nrme);
+				if (nrme.getModelRoot() instanceof Ooaofooa) {
+					Ooaofooa.getDefaultInstance()
+							.fireModelElementCreated(new BaseModelDelta(Modeleventnotification_c.DELTA_NEW, nrme));
+				} else {
+					ModelRoot graphicsRoot = (ModelRoot) OoaofgraphicsUtil
+							.getGraphicsRoot(Ooaofooa.DEFAULT_WORKING_MODELSPACE, OoaofgraphicsUtil.getGraphicsClass());
+					graphicsRoot.fireModelElementCreated(new BaseModelDelta(Modeleventnotification_c.DELTA_NEW, nrme));
+				}
+			}
+
+		}
 	}
 }

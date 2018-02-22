@@ -25,6 +25,8 @@ the License.
 -->
 
 <plugin>
+   <extension-point id="dropToFrameControl" name="org.xtuml.bp.debug.ui.dropToFrameControl" schema="schema/dropToFrameControl.exsd"/>
+   <extension-point id="parameterConfigurator" name="org.xtuml.bp.debug.ui.parameterConfigurator" schema="schema/parameterConfigurator.exsd"/>
 
        <extension
        point="org.eclipse.debug.core.launchConfigurationTypes">
