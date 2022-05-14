@@ -37,6 +37,7 @@ import org.eclipse.gef.DragTracker;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.GraphicalEditPart;
 import org.eclipse.gef.Request;
+import org.eclipse.gef.editparts.GridLayer;
 import org.eclipse.gef.editparts.ScalableFreeformRootEditPart;
 import org.eclipse.gef.editparts.ZoomManager;
 import org.eclipse.gef.tools.MarqueeDragTracker;
@@ -132,5 +133,10 @@ public class GraphicsScalableFreeformEditPart extends
 	public void addLayerAfter(Layer layer,
 			Object key, Object after) {
 		scaledLayers.addLayerAfter(layer, key, after);
+	}
+	
+	@Override
+	protected GridLayer createGridLayer() {
+		return new GraphicsGridLayer();
 	}
 }
