@@ -29,6 +29,7 @@ import java.util.List;
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.CompareUI;
 import org.eclipse.compare.IEditableContent;
+import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
@@ -278,10 +279,10 @@ public class SynchronizedTreeViewer extends TreeViewer implements
 				handleOpen();
 			}
 		});
-		getTree().addPaintListener(new PaintListener() {
+		getTree().addListener(SWT.PaintItem, new Listener() {
 
 			@Override
-			public void paintControl(PaintEvent e) {
+			public void handleEvent(Event e) {
 				try {
 					highlightDifferences(e.gc);
 				} catch (Exception ex) {
@@ -346,8 +347,8 @@ public class SynchronizedTreeViewer extends TreeViewer implements
 			} else {
 				gc.setLineStyle(SWT.LINE_SOLID);
 			}
-			gc.drawRoundRectangle(highlightBounds.x, highlightBounds.y,
-					highlightBounds.width, highlightBounds.height, 5, 5);
+			gc.drawRoundRectangle(highlightBounds.x, highlightBounds.y + 1,
+					highlightBounds.width, highlightBounds.height - 2, 5, 5);
 			if (mergeViewer.getLeftViewer() == this) {
 				gc.drawLine(highlightBounds.x + highlightBounds.width,
 						highlightBounds.y + (itemBounds.height / 2), tree
