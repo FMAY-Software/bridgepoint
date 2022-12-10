@@ -163,6 +163,12 @@ for each elemInSystem in elemInSystems
   delete object instance elemInSystem;
 end for;
 
+select many comments related by self->PE_C[R8009];
+for each comment in comments
+  unrelate self from comment across R8009;
+  comment.dispose();
+end for;
+
 delete object instance self;',
 	1,
 	'',
@@ -1106,6 +1112,30 @@ end if;
 	"39234bd4-7c4b-4acb-ba0a-3941999ac9d1",
 	0,
 	0);
+INSERT INTO O_TFR
+	VALUES ("ecd06ef9-d85d-430b-9ad6-bb28281cd541",
+	"5ada8d43-9e86-43cb-91a2-fac19a8e30f6",
+	'addComment',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000000",
+	1,
+	'create object instance comment of PE_C;
+relate comment to self across R8009;
+comment.body = param.body;',
+	1,
+	'',
+	"e680b8a3-b89e-4acc-b2c9-89aa2112a148",
+	0,
+	1);
+INSERT INTO O_TPARM
+	VALUES ("222b69b8-b07e-4a51-adaa-d3e7b49dbe62",
+	"ecd06ef9-d85d-430b-9ad6-bb28281cd541",
+	'body',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"00000000-0000-0000-0000-000000000000",
+	'');
 INSERT INTO O_NBATTR
 	VALUES ("5776264f-c7e9-4abe-839f-24d0750e007c",
 	"5ada8d43-9e86-43cb-91a2-fac19a8e30f6");

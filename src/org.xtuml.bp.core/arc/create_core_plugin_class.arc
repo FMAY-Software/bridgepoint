@@ -672,6 +672,9 @@ public class CorePlugin extends AbstractUIPlugin {
                 //else  /* bidirectional */
                        //descriptor = getImageDescriptor("metadata/bidirectionalSignal.gif");       
             }  
+            else if (objectName.equals("Comment_c")) {
+        		descriptor = getImageDescriptor("metadata/Comment.gif");
+    		}
             else {
                 if(returnDefaultOnFail) {
                 	descriptor = getImageDescriptor("${default_image}");
