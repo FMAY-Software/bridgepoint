@@ -4,7 +4,7 @@
 	<extension
 		point="org.eclipse.ui.editors">
 		<editor
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.XtextEditor"
 			contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
 			default="true"
 			extensions="mod,tr,ext,scn,al,int,svc,prj,fn,masl"
@@ -16,7 +16,7 @@
 		point="org.eclipse.ui.handlers">
 		<!--
 		<handler
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
 			commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
 			<activeWhen>
 				<reference
@@ -26,7 +26,7 @@
 		</handler>
 		-->
 		<handler
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
 			commandId="org.xtuml.bp.xtext.masl.MASL.validate">
 		<activeWhen>
 			<reference
@@ -36,14 +36,14 @@
 		</handler>
 		<!-- copy qualified name -->
 		<handler
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
 			commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName">
 			<activeWhen>
 				<reference definitionId="org.xtuml.bp.xtext.masl.MASL.Editor.opened" />
 			</activeWhen>
 		</handler>
 		<handler
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
 			commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName">
 			<activeWhen>
 				<and>
@@ -80,28 +80,28 @@
 	<extension
 			point="org.eclipse.ui.preferencePages">
 		<page
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL"
 			name="MASL">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
 		</page>
 		<page
 			category="org.xtuml.bp.xtext.masl.MASL"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL.coloring"
 			name="Syntax Coloring">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
 		</page>
 		<page
 			category="org.xtuml.bp.xtext.masl.MASL"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL.templates"
 			name="Templates">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
 		</page>
 		<page
               category="org.xtuml.bp.xtext.masl.MASL"
-              class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.validation.ValidatorPreferencePage"
+              class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.validation.ValidatorPreferencePage"
               id="org.xtuml.bp.xtext.masl.MASL.validator.preferencePage"
               name="Errors/Warnings">
            <keywordReference
@@ -115,7 +115,7 @@
 	<extension
 			point="org.eclipse.ui.propertyPages">
 		<page
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL"
 			name="MASL">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
@@ -211,7 +211,7 @@
 	-->
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
 			commandId="org.eclipse.xtext.ui.editor.FindReferences">
 			<activeWhen>
 				<reference
@@ -224,130 +224,130 @@
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="mod">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="mod">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="tr">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="tr">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="ext">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="ext">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="scn">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="scn">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="al">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="al">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="int">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="int">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="svc">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="svc">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="prj">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="prj">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="fn">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="fn">
 	    </resourceServiceProvider>
 	</extension>
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.resource.IResourceFactory"
 			type="masl">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 	    <resourceServiceProvider
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 	        uriExtension="masl">
 	    </resourceServiceProvider>
 	</extension>
@@ -375,13 +375,13 @@
 	</extension>
 	<extension point="org.eclipse.xtext.builder.participant">
 		<participant
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.builder.IXtextBuilderParticipant"
 			fileExtensions="mod,tr,ext,scn,al,int,svc,prj,fn,masl"/>
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
 			category="org.xtuml.bp.xtext.masl.MASL"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL.compiler.preferencePage"
 			name="Compiler">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
@@ -390,7 +390,7 @@
 	<extension point="org.eclipse.ui.propertyPages">
 		<page
 			category="org.xtuml.bp.xtext.masl.MASL"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL.compiler.propertyPage"
 			name="Compiler">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
@@ -416,7 +416,7 @@
 	-->
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
 			commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
 			<activeWhen>
 				<reference definitionId="org.xtuml.bp.xtext.masl.MASL.Editor.opened" />
@@ -427,7 +427,7 @@
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler 
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
 			commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
 			<activeWhen>
 				<reference
@@ -460,7 +460,7 @@
 	<extension
 	        point="org.eclipse.ui.ide.markerResolution">
 	    <markerResolutionGenerator
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
 	        markerType="org.xtuml.bp.xtext.masl.ui.masl.check.fast">
 	        <attribute
 	            name="FIXABLE_KEY"
@@ -468,7 +468,7 @@
 	        </attribute>
 	    </markerResolutionGenerator>
 	    <markerResolutionGenerator
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
 	        markerType="org.xtuml.bp.xtext.masl.ui.masl.check.normal">
 	        <attribute
 	            name="FIXABLE_KEY"
@@ -476,7 +476,7 @@
 	        </attribute>
 	    </markerResolutionGenerator>
 	    <markerResolutionGenerator
-	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+	        class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
 	        markerType="org.xtuml.bp.xtext.masl.ui.masl.check.expensive">
 	        <attribute
 	            name="FIXABLE_KEY"
@@ -487,7 +487,7 @@
 	<!-- Rename Refactoring -->
 	<extension point="org.eclipse.ui.handlers">
 		<handler 
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
 			commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
 			<activeWhen>
 				<reference
@@ -512,7 +512,7 @@
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
 			category="org.xtuml.bp.xtext.masl.MASL"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
 			id="org.xtuml.bp.xtext.masl.MASL.refactoring"
 			name="Refactoring">
 			<keywordReference id="org.xtuml.bp.xtext.masl.ui.keyword_MASL"/>
@@ -520,19 +520,19 @@
 	</extension>
 	<extension point="org.eclipse.compare.contentViewers">
 		<viewer id="org.xtuml.bp.xtext.masl.MASL.compare.contentViewers"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
 			extensions="mod,tr,ext,scn,al,int,svc,prj,fn,masl">
 		</viewer>
 	</extension>
 	<extension point="org.eclipse.compare.contentMergeViewers">
 		<viewer id="org.xtuml.bp.xtext.masl.MASL.compare.contentMergeViewers"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
 			extensions="mod,tr,ext,scn,al,int,svc,prj,fn,masl" label="MASL Compare">
 		</viewer>
 	</extension>
 	<extension point="org.eclipse.ui.editors.documentProviders">
 		<provider id="org.xtuml.bp.xtext.masl.MASL.editors.documentProviders"
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
 			extensions="mod,tr,ext,scn,al,int,svc,prj,fn,masl">
 		</provider>
 	</extension>
@@ -581,7 +581,7 @@
 	<extension
 		point="org.eclipse.ui.editors">
 		<editor
-			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.xtuml.bp.xtext.masl.ui.document.MaslSnippetEditor"
+			class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.xtuml.bp.xtext.masl.ui.document.MaslSnippetEditor"
 			contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
 			default="true"
 			extensions="tpr"
@@ -592,7 +592,7 @@
     <extension
          point="org.xtuml.bp.core.renameParticipants">
       <renameParticipant
-            class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactory:org.xtuml.bp.xtext.masl.ui.rename.MaslRenameParticipant">
+            class="org.xtuml.bp.xtext.masl.ui.MASLExecutableExtensionFactorySafe:org.xtuml.bp.xtext.masl.ui.rename.MaslRenameParticipant">
       </renameParticipant>
     </extension>
 </plugin>
