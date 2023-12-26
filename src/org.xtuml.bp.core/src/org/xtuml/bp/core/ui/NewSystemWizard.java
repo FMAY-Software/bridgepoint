@@ -1,5 +1,7 @@
 package org.xtuml.bp.core.ui;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -34,6 +36,7 @@ public class NewSystemWizard extends DelegatingWizard implements INewWizard {
 
     // Reference to the pages provided by this wizard
     private WizardNewSystemCreationPage m_creationPage;
+    private NewSystemPersistenceChooserPage m_persistencePage;
 
     @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {
@@ -49,6 +52,8 @@ public class NewSystemWizard extends DelegatingWizard implements INewWizard {
             addPage(new ModelCompilerChooserPage("newxtUMLModelCompilerChooser", "xtUML Model Compilers",
                     "Select model compilers to use with this xtUML project", "Available xtUML model compilers:"));
         }
+        m_persistencePage = new NewSystemPersistenceChooserPage("newxtUMLPersistenceChooser", "xtUML Persistence Format", "Select the persistence format for this xtUML project");
+        addPage(m_persistencePage);
     }
 
     @Override
@@ -61,6 +66,7 @@ public class NewSystemWizard extends DelegatingWizard implements INewWizard {
         IProject newProject = createProject();
         if (newProject != null) {
             XtUMLNature.addNature(newProject);
+            m_persistencePage.updatePersistencePreferences(newProject);
             final String name = m_creationPage.getProjectName();
             NewSystemWizard.createSystemModel(newProject, name);
             for (IDelegateWizard delegate : getDelegateWizards()) {
@@ -103,7 +109,7 @@ public class NewSystemWizard extends DelegatingWizard implements INewWizard {
         };
         try {
             ResourcesPlugin.getWorkspace().run(runnable, new NullProgressMonitor());
-            PersistenceManager.getDefaultInstance().loadProject(newModel, false, true);
+            PersistenceManager.getDefaultInstance().loadProjects(List.of(newProject), new NullProgressMonitor());
         } catch (CoreException e) {
             CorePlugin.logError("Failed to create System Model data file", e);
         }

@@ -21,13 +21,13 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -58,10 +58,12 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.Preferences;
-import org.xtuml.bp.core.AttributeReferenceInClass_c;
 import org.xtuml.bp.core.CorePlugin;
 import org.xtuml.bp.core.InteractionParticipant_c;
 import org.xtuml.bp.core.Message_c;
@@ -80,6 +82,8 @@ public class PersistenceManager {
 
 	private static PersistenceManager defaultInstance;
 	private static IPersistenceHierarchyMetaData persistenceHierarchy;
+	
+	private static boolean showErrorDialog = true;
 
 	// list of component instances
 	private static TreeMap<String, PersistableModelComponent> Instances = new TreeMap<String, PersistableModelComponent>();
@@ -485,65 +489,58 @@ public class PersistenceManager {
 		return sequentialExecutor;
 	}
 
-	public synchronized void loadComponents(final Collection<PersistableModelComponent> pmcs,
-			final IProgressMonitor monitor, final boolean parseOal, final boolean reload) throws CoreException {
-		final Set<PersistableModelComponent> pmcsToLoad = new HashSet<>();
-		pmcsToLoad.addAll(pmcs.stream().filter(pmc -> reload || !pmc.isLoaded()).collect(Collectors.toSet()));
+	private synchronized void loadComponents(final Collection<PersistableModelComponent> pmcs,
+			final IProgressMonitor monitor) throws CoreException {
 
-		// Whenever an O_REF is in the RGOs list, the PMC needs to be reloaded
-		// because the load of the O_REFs is what formalizes the association
-		final Set<PersistableModelComponent> extraPmcs = new HashSet<>();
-		for (PersistableModelComponent pmc : pmcsToLoad) {
-			@SuppressWarnings("unchecked")
-			List<NonRootModelElement> rgos = (List<NonRootModelElement>) persistenceHierarchy
-					.findExternalRGOsToContainingComponent(pmc.getRootModelElement());
-			extraPmcs.addAll(rgos.stream().filter(AttributeReferenceInClass_c.class::isInstance)
-					.map(o -> ((NonRootModelElement) o).getPersistableComponent()).filter(Objects::nonNull)
-					.collect(Collectors.toSet()));
-		}
-		pmcsToLoad.addAll(extraPmcs);
-		
+		// filter the PMCs by checking their hash value against the most recent hash
+		final Set<PersistableModelComponent> pmcsToLoad = new HashSet<>();
+		pmcsToLoad.addAll(
+				pmcs.stream().filter(pmc -> !pmc.isLoaded() || !Arrays.equals(pmc.calculateDigest(), pmc.getLastDigest()))
+						.collect(Collectors.toSet()));
+
 		// try to reload inconsistent components
-		if (reload) {
+		boolean reloadingInconsistentInstances = InconsistentInstances.values().size() > 0;
+		if (pmcsToLoad.stream().anyMatch(PersistableModelComponent::isLoaded)) {
 			pmcsToLoad.addAll(InconsistentInstances.values());
 		}
 
 		if (!pmcsToLoad.isEmpty()) {
 
-			//System.out.println("Triggered load [reload=" + reload + "]... " + pmcsToLoad.size());
-			
+			// System.out.println("Triggered load [reload=" + reload + "]... " +
+			// pmcsToLoad.size());
+
 			final Map<PersistableModelComponent, NonRootModelElement> oldElementMap = new HashMap<>();
-			
-			// if this is a reload, clear the database first
-			if (reload) {
-				pmcsToLoad.forEach(pmc -> {
-					oldElementMap.put(pmc, pmc.getRootModelElement());
-					pmc.clearDatabase();
-				});
-			}
-			
+
+			// if the PMC is already loaded, clear the database first
+			pmcsToLoad.stream().filter(PersistableModelComponent::isLoaded).forEach(pmc -> {
+				oldElementMap.put(pmc, pmc.getRootModelElement());
+				pmc.clearDatabase();
+			});
+
 			// launch each load in a new thread
 			sequentialExecutor = new SequentialExecutor(loadExecutor);
 			final CompletionService<PersistableModelComponent> loadingPmcs = new ExecutorCompletionService<>(
 					sequentialExecutor);
 			for (PersistableModelComponent pmc : pmcsToLoad) {
-				if (reload) {
+				if (oldElementMap.containsKey(pmc)) {
 					Ooaofooa.getDefaultInstance().fireModelElementAboutToBeReloaded(oldElementMap.get(pmc));
 				}
 				loadingPmcs.submit(() -> {
 					try {
 						final String oldName = Thread.currentThread().getName();
 						Thread.currentThread().setName(pmc.getFile().toString());
-						pmc.load(monitor, parseOal, reload);
+						pmc.load(monitor, false, pmc.isLoaded());
 						Thread.currentThread().setName(oldName);
 					} catch (CoreException e) {
 						CorePlugin.logError("Problem loading component: " + pmc.getFile(), e);
 					}
 				}, pmc);
 			}
-			
+
 			// initiate the shutdown of the sequential executor
 			sequentialExecutor.shutdown();
+			
+			boolean errorsOccurred = false;
 
 			// wait for all PMCs to load
 			int loadedPmcs = 0;
@@ -555,12 +552,14 @@ public class PersistenceManager {
 						try {
 							final PersistableModelComponent pmc = pmcFuture.get();
 							if (pmc.isLoaded()) {
-								//System.out.println("LOADED: " + pmc.getFile());
+								// System.out.println("LOADED: " + pmc.getFile());
 							} else {
-								//System.err.println("FAILED TO LOAD: " + pmc.getFile());
+								CorePlugin.logError("Failed to load: " + pmc.getFile(), new RuntimeException());
+								errorsOccurred = true;
 							}
 						} catch (ExecutionException e) {
 							CorePlugin.logError("Problem loading component", e);
+							errorsOccurred = true;
 						} finally {
 							loadedPmcs++;
 						}
@@ -569,63 +568,73 @@ public class PersistenceManager {
 					e.printStackTrace();
 				}
 			}
-			
+
 			// finish the load for each PMC
 			for (PersistableModelComponent pmc : pmcsToLoad) {
 				try {
 					if (pmc.isLoaded()) {
 						pmc.finishLoad(monitor);
-						if (reload) {
+						if (oldElementMap.containsKey(pmc)) {
 							Ooaofooa.getDefaultInstance().fireModelElementReloaded(oldElementMap.get(pmc),
 									pmc.getRootModelElement());
 						}
 					}
 				} catch (CoreException e) {
 					CorePlugin.logError("Problem finishing component load", e);
+					errorsOccurred = true;
 				}
 			}
-			
+
 			sequentialExecutor = null;
 
-			System.out.println("Done loading.");
+			if (!reloadingInconsistentInstances && errorsOccurred && showErrorDialog) {
+				if (PlatformUI.isWorkbenchRunning()) {
+					PlatformUI.getWorkbench().getDisplay().syncExec(() -> {
+						final MessageDialogWithToggle dialog = new MessageDialogWithToggle(null,
+								"Errors Occurred During xtUML Load", null,
+								"Errors occurred while loading xtUML model files. Check for correct syntax in '.xtuml' files and then restart BridgePoint."
+										+ " For full details, check the error log.",
+								MessageDialog.ERROR, new String[] { IDialogConstants.OK_LABEL }, 0,
+								"Do not show this message again", false);
+						dialog.open();
+						showErrorDialog = !dialog.getToggleState();
+					});
+				}
+			}
+
+			// System.out.println("Done loading.");
 
 		}
 	}
 
-	public void loadProject(NonRootModelElement containedElement, boolean parseOal, boolean reload) {
-		loadProject(containedElement.getFile().getProject(), parseOal, reload);
-	}
-
-	public void loadProject(IProject project, boolean parseOal, boolean reload) {
-		try {
-			loadProject(project, new NullProgressMonitor(), parseOal, reload);
-		} catch (CoreException e) {
-			CorePlugin.logError("Failed to load project: " + project.getName(), e);
-		}
-	}
-
-	public void loadProject(IProject project, IProgressMonitor monitor, boolean parseOal, boolean reload)
+	public void loadProjects(Collection<IProject> projects, IProgressMonitor monitor)
 			throws CoreException {
-		// Get the list of PMCs to load
-		// Don't reload inconsistent PMCs
-		Collection<PersistableModelComponent> pmcs = getDeepChildrenOf(getRootComponent(project), false);
+		final Set<PersistableModelComponent> pmcsToLoad = new HashSet<>();
+		for (final IProject project : projects) {
+			// Get the list of PMCs to load
+			// Don't reload inconsistent PMCs
+			pmcsToLoad.addAll(getDeepChildrenOf(getRootComponent(project), false));
 
-		// If IPRs are enabled, include all PMCs from projects in the workspace
-		Preferences projectPrefs = new ProjectScope(project)
-				.getNode(BridgePointProjectPreferences.BP_PROJECT_PREFERENCES_ID);
-		boolean iprsEnabled = projectPrefs.getBoolean(BridgePointProjectReferencesPreferences.BP_PROJECT_REFERENCES_ID,
-				false);
-		if (iprsEnabled) {
-			pmcs = 
-							Stream.of(ResourcesPlugin.getWorkspace().getRoot().getProjects())
-									.flatMap(p -> getDeepChildrenOf(getRootComponent(p), false).stream())
-					.collect(Collectors.toSet());
+			// If IPRs are enabled, include all PMCs from projects in the workspace
+			final Preferences projectPrefs = new ProjectScope(project)
+					.getNode(BridgePointProjectPreferences.BP_PROJECT_PREFERENCES_ID);
+			final boolean iprsEnabled = projectPrefs
+					.getBoolean(BridgePointProjectReferencesPreferences.BP_PROJECT_REFERENCES_ID, false);
+			if (iprsEnabled) {
+				pmcsToLoad.addAll(Stream.of(ResourcesPlugin.getWorkspace().getRoot().getProjects())
+						.flatMap(p -> getDeepChildrenOf(getRootComponent(p), false).stream())
+						.collect(Collectors.toSet()));
+			}
 		}
-		loadComponents(pmcs, monitor, parseOal, reload);
+		loadComponents(pmcsToLoad, monitor);
 	}
 
 	public void loadAllProjects() {
-		Stream.of(ResourcesPlugin.getWorkspace().getRoot().getProjects()).forEach(p -> loadProject(p, false, false));
+		try {
+			loadProjects(Set.of(ResourcesPlugin.getWorkspace().getRoot().getProjects()), new NullProgressMonitor());
+		} catch (CoreException e) {
+			CorePlugin.logError("Failed to load projects.", e);
+		}
 	}
 
 	private UpgradeHandler getUpgradeHandler() {
@@ -815,6 +824,12 @@ public class PersistenceManager {
 	static public PersistableModelComponent findInconsistentComponent(String path) {
 		synchronized (InconsistentInstances) {
 			return (PersistableModelComponent) InconsistentInstances.get(path);
+		}
+	}
+	
+	static public boolean projectHasInconsistentInstances(IProject project) {
+		synchronized (InconsistentInstances) {
+			return InconsistentInstances.values().stream().anyMatch(pmc -> pmc.getFile().getProject().equals(project));
 		}
 	}
 
