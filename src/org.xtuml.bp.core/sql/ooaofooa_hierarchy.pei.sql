@@ -28,6 +28,7 @@ INSERT INTO T_TNS VALUES (3,  'Function.gif',                   'S_SYNC',  '', '
 INSERT INTO T_TNS VALUES (4,  'FunctionParameter.gif',          'S_SPARM', '', 'Name', '',                 'Function Parameter',        54, 'succeeds');
 INSERT INTO T_TNS VALUES (7,  'InstanceBasedOperation.gif',                  'O_TFR',   '', 'Name', '',                 'Operation',                 125, 'succeeds');
 INSERT INTO T_TNS VALUES (8,  'OperationParameter.gif',         'O_TPARM', '', 'Name', '',                 'Operation Parameter',       124, 'succeeds');
+INSERT INTO T_TNS VALUES (9,  'InstanceBasedOperation.gif', 'I_IBO', '', 'Name', '->O_TFR[R2979]', 'Instance Bound Operations', -1, '');
 INSERT INTO T_TNS VALUES (10, 'InstanceStateChart.gif',         'SM_ISM',  'Instance State Chart', '', '', 'Instance State Chart', 		-1, '');
 INSERT INTO T_TNS VALUES (15, 'ClassStateChart.gif',            'SM_ASM',  'Class State Chart', '', '',    'Class State Chart', 			-1, '');
 INSERT INTO T_TNS VALUES (11, 'State.gif',                      'SM_STATE','', 'Name', '',                 'State', 						-1, '');
@@ -43,7 +44,7 @@ INSERT INTO T_TNS VALUES (30, 'Association.gif',                'R_REL',   '', '
 INSERT INTO T_TNS VALUES (31, 'ImportedClass.gif',              'O_IOBJ',  '', '', '',                     'Imported Class', 				-1, '');
 INSERT INTO T_TNS VALUES (32, 'Identifier.gif',                 'O_OIDA',    '', '', '',                     'Identifier', 					-1, '');
 INSERT INTO T_TNS VALUES (33, 'DerivedAttribute.gif',           'O_DBATTR','', '', '',                     'Derived Attribute', 			-1, '');
-INSERT INTO T_TNS VALUES (34, 'Reference.gif',                  'O_REF',   '', '', '',                     'Reference', 					-1, '');
+INSERT INTO T_TNS VALUES (34, 'Reference.gif',                  'O_REF',   '', '', '',                     'Reference', 					112, 'succeeds');
 INSERT INTO T_TNS VALUES (37, 'AssociationParticipantEnd.gif', 'R_PART',  '', '', '',                     'Association Participant End', 	-1, '');
 INSERT INTO T_TNS VALUES (38, 'AssociationFormalizerEnd.gif',  'R_FORM',  '', '', '',                     'Association Formalizer End', 	-1, '');
 INSERT INTO T_TNS VALUES (39, 'AssociativeOneEnd.gif',         'R_AONE',  '', '', '',                     'Associative One End', 			-1, '');

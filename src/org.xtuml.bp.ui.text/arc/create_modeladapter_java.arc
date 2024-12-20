@@ -203,14 +203,6 @@ public class ${modelAdapterClass}
             {
                 return null;
             }
-            else
-            {
-                PersistenceManager.getDefaultInstance().loadAndFinishComponent(componentPath);
-                PersistableModelComponent pmc = PersistenceManager.findComponent(new Path(componentPath));
-                if (pmc == null) {
-                    return null;
-                }
-            }
         }
         return ${classname}.${instancename}(modelRoot, new ${testclass}(modelElementID));
     }
@@ -299,6 +291,7 @@ public class ${modelAdapterClass}
     private final static String type = "${core_package}.${classname}"; //$$NON-NLS-1$$
     private String modelRootID = null;
     private String componentPath;
+    private String modelPath;
   .for each attr in id_attr_set
     .invoke result = get_core_datatype(attr)
     .assign cdt = result.cdt
@@ -317,6 +310,7 @@ public class ${modelAdapterClass}
     {
       modelRootID = inst.getModelRoot().getId();
       componentPath = inst.getContent();
+      modelPath = inst.getPath();
   .for each attr in id_attr_set
       .select one rattr related by attr->O_RATTR[R106]
       .if(not_empty rattr)
@@ -335,6 +329,7 @@ public class ${modelAdapterClass}
       if (set.getType().equals(type))
       {
         modelRootID = set.getModelRootID();
+        modelPath = set.getModelPath();
   .assign index = -1
   .for each attr in id_attr_set
     .assign index = index + 1
@@ -357,7 +352,7 @@ public class ${modelAdapterClass}
     public ModelElementID createModelElementID()
     {
   .assign count = cardinality id_attr_set
-      ModelElementID id = new ModelElementID(modelRootID, type, componentPath);
+      ModelElementID id = new ModelElementID(modelRootID, type, componentPath, modelPath);
   .for each attr in id_attr_set
     .invoke result = get_core_datatype(attr)
     .assign cdt = result.cdt
@@ -372,7 +367,7 @@ public class ${modelAdapterClass}
     public boolean evaluate(Object inst)
     {
       ${classname} candidate = (${classname}) inst;
-      return\
+      return (\
   .assign sep = "   "
   .for each attr in id_attr_set
         .invoke ibaaui = is_base_attribute_a_unique_id(attr)
@@ -383,7 +378,7 @@ public class ${modelAdapterClass}
         .end if
     .assign sep = "&& "
   .end for
-;
+) || candidate.getPath().equals(modelPath);
     }
   }
 .end for

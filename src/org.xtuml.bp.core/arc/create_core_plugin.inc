@@ -73,25 +73,35 @@ This file is the plugin manifest for the BridgePoint core plugin.
       .if(menu_entry.UsesSelectionDialog)
         .assign action_class_name = "org.xtuml.bp.core.ui.actions.${acn.body}"
       .end if
+	  .assign is_creation_item = false
       .assign menubar_path = "org.xtuml.bp.ui.context-internal"
       .if ("$lr{menu_entry.Specialism}" == "new")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.newmenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "classes")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.classroot/org.xtuml.bp.ui.newclassmenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "components")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.componentroot/org.xtuml.bp.ui.newcomponentmenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "exceptions")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.exceptionroot/org.xtuml.bp.ui.newexceptionmenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "external")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.externalroot/org.xtuml.bp.ui.newexternalmenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "interaction")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.interactionroot/org.xtuml.bp.ui.newinteractionmenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "activity")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.activityroot/org.xtuml.bp.ui.newactivitymenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "types")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.typeroot/org.xtuml.bp.ui.newtypemenu"
+        .assign is_creation_item = true
       .elif  ("$lr{menu_entry.Specialism}" == "usecase")
         .assign menubar_path = "org.xtuml.bp.ui.newroot/org.xtuml.bp.ui.usecaseroot/org.xtuml.bp.ui.newusecasemenu"
+        .assign is_creation_item = true
       .end if
       .assign has_wizard = ""
       .select any wfl from instances of W_WOF where ((selected.Specialism == menu_entry.Specialism) and (selected.Label == menu_entry.Label) and (selected.Key_Lett == menu_entry.Key_Lett))
@@ -173,6 +183,10 @@ This file is the plugin manifest for the BridgePoint core plugin.
 	  .if ( ("${propertyKey}" != "nokey") and (filter_set_count > 0) )
 	    .assign use_and = true
 	  .end if
+	  .// TODO
+	  .if (is_creation_item)
+	    .assign use_and = true
+	  .end if
 	  .if ( ("${propertyKey}" != "nokey") or (filter_set_count > 0) )
 		 <visibility>
         .if (use_and)
@@ -185,6 +199,13 @@ This file is the plugin manifest for the BridgePoint core plugin.
              <not>
                <systemProperty name="bridgepoint.${propertyKey}" value="disabled"/>
              </not>
+        .end if
+		.// TODO
+		.if (is_creation_item)
+			.select any unsupported_elem from instances of UnsupportedElement where (selected.KeyLetters == menu_entry.Resultant_Class)
+            .if (not_empty unsupported_elem)
+			<objectState name="project_preference" value="persistence-mode=sql" />
+			.end if
         .end if
         .if (use_and)
            </and>
@@ -292,7 +313,7 @@ This file is the plugin manifest for the BridgePoint core plugin.
      </page>
      <page class="org.xtuml.bp.core.ui.preferences.ExportPreferences"
            id="org.xtuml.bp.core.ui.preferences.ExportPreferences"
-           name="Model Persistence"
+           name="Model Export"
            category="org.xtuml.bp.core.root">
      </page>
      <page class="org.xtuml.bp.core.ui.preferences.MessageDirectionPreferences"
@@ -328,18 +349,36 @@ This file is the plugin manifest for the BridgePoint core plugin.
        class="org.xtuml.bp.core.ui.preferences.BridgePointProjectReferencesPreferencesPage"
        id="org.xtuml.bp.core.ui.preferences.BridgePointProjectReferencesPreferencesPage"
        category="org.xtuml.bp.core.ui.preferences.BridgePointProjectPreferencesPage">
+       <enabledWhen>
+         <adapt type="org.eclipse.core.resources.IProject"></adapt>
+       </enabledWhen>
      </page>
      <page
        name="Action Language"
        class="org.xtuml.bp.core.ui.preferences.BridgePointProjectActionLanguagePreferencesPage"
        id="org.xtuml.bp.core.ui.preferences.BridgePointProjectActionLanguagePreferencesPage"
        category="org.xtuml.bp.core.ui.preferences.BridgePointProjectPreferencesPage">
+       <enabledWhen>
+         <adapt type="org.eclipse.core.resources.IProject"></adapt>
+       </enabledWhen>
      </page>
      <page
        name="Dependencies"
        class="org.xtuml.bp.core.ui.preferences.BridgePointProjectDependenciesPreferencesPage"
        id="org.xtuml.bp.core.ui.preferences.BridgePointProjectDependenciesPreferencesPage"
        category="org.xtuml.bp.core.ui.preferences.BridgePointProjectPreferencesPage">
+       <enabledWhen>
+         <adapt type="org.eclipse.core.resources.IProject"></adapt>
+       </enabledWhen>
+     </page>
+     <page
+       name="Persistence"
+       class="org.xtuml.bp.core.ui.preferences.BridgePointPersistencePreferencesPage"
+       id="org.xtuml.bp.core.ui.preferences.BridgePointPersistencePreferencesPage"
+       category="org.xtuml.bp.core.ui.preferences.BridgePointProjectPreferencesPage">
+       <enabledWhen>
+         <adapt type="org.eclipse.core.resources.IProject"></adapt>
+       </enabledWhen>
      </page>
    </extension>
    <extension id="org.xtuml.bp.core.ui.viewcats"
@@ -366,15 +405,7 @@ This file is the plugin manifest for the BridgePoint core plugin.
 	<extension
 		point="org.eclipse.ui.menus">
 			<menuContribution
-				locationURI="popup:org.eclipse.ui.popup.any?after=org.xtuml.bp.ui.context-internal">
-				<menu
-					id="org.xtuml.bp.core.ui.actions.cardinality"
-							label="Cardinality">
-				</menu>
-				<dynamic
-					class="org.xtuml.bp.core.ui.actions.AssociationCardinalityContributionItem"
-							id="org.xtuml.bp.core.ui.actions.cardinality.dynamic">
-				</dynamic>
+							locationURI="popup:org.eclipse.ui.popup.any?after=org.xtuml.bp.ui.context-internal">
 				<menu
 					id="org.xtuml.bp.core.ui.actions.range"
 							label="Range">
@@ -449,6 +480,7 @@ This file is the plugin manifest for the BridgePoint core plugin.
   <extension-point id="code-builders" name="xtUML Code Builders" schema="schema/code-builders.exsd" /> 
   <extension-point id="renameParticipants" name="xtUML Rename Refactoring Participants"  schema="schema/renameParticipants.exsd" />
   <extension-point id="ElementNameChangeListeners" name="Element Name Change Listeners" schema="schema/ElementNameChangeListeners.exsd"/>
+  <extension-point id="persistence_format_listener" name="Persistence Format Listener" schema="schema/persistence_format_listener.exsd"/>
 </plugin>
 .end function
 .//

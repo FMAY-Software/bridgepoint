@@ -25,7 +25,7 @@ package org.xtuml.bp.core.common;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -37,25 +37,13 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.texteditor.IDocumentProviderExtension;
-import org.eclipse.xtext.ui.editor.XtextEditor;
 import org.xtuml.bp.core.CorePlugin;
 import org.xtuml.bp.core.DataType_c;
 import org.xtuml.bp.core.Modeleventnotification_c;
 import org.xtuml.bp.core.Ooaofooa;
-import org.xtuml.bp.core.SystemModel_c;
 import org.xtuml.bp.core.ui.PasteAction;
 import org.xtuml.bp.core.util.CoreUtil;
-import org.xtuml.bp.core.util.RenameActionUtil;
 import org.xtuml.bp.core.util.RenameParticipantUtil;
 
 public class ComponentTransactionListener implements ITransactionListener {
@@ -296,9 +284,9 @@ public class ComponentTransactionListener implements ITransactionListener {
 			try {
 				// if a masl rename/refactor occurred reload the project.
 				// we do this because we do not know which model roots masl had to update
-				PersistableModelComponent systemModelRoot = persisted.iterator().next();
-				systemModelRoot = systemModelRoot.getRootModelElement().getRoot().getPersistableComponent();
-				systemModelRoot.loadComponentAndChildren(new NullProgressMonitor(), false, true);
+				PersistenceManager.getDefaultInstance().loadProjects(List.of(persisted.iterator().next().getFile().getProject()), new NullProgressMonitor());
+			} catch (CoreException e) {
+				CorePlugin.logError("Failed to load projects.", e);
 			} finally {
 				// reset the flag to allow actions to be persisted in BP again.
 				// Placement of this reset is not relevant to the reload. It 
@@ -314,7 +302,6 @@ public class ComponentTransactionListener implements ITransactionListener {
 		for(int i = 0; i < instances.length; i++) {
 			instances[i].clearUnreferencedProxies();
 		}
-		IntegrityChecker.startIntegrityChecker(persisted);
 		RenameParticipantUtil.synchronizeMaslEditors();
 	}
 	
@@ -432,6 +419,9 @@ public class ComponentTransactionListener implements ITransactionListener {
 									oldName + "/" + newName + "."
 											+ Ooaofooa.MODELS_EXT));
 
+			IFile oldGraphicsFile = wsRoot.getFile(oldFile.getFullPath().removeFileExtension().addFileExtension(Ooaofooa.GRAPHICS_EXT));
+			IFile newGraphicsFileOldFolder = wsRoot.getFile(newFileOldFolder.getFullPath().removeFileExtension().addFileExtension(Ooaofooa.GRAPHICS_EXT));
+
             String[] actionDialects = ActionFile.getAvailableDialects();
             IFile[] oldActionFiles = new IFile[actionDialects.length];
             IFile[] newActionFilesOldFolder = new IFile[actionDialects.length];
@@ -450,6 +440,9 @@ public class ComponentTransactionListener implements ITransactionListener {
 			try {
 				// Rename both the file and the folder and the corresponding action files
 				oldFile.move(newFileOldFolder.getFullPath(), true, true, null);
+				if (oldGraphicsFile.exists()) {
+					oldGraphicsFile.move(newGraphicsFileOldFolder.getFullPath(), true, true, null);
+				}
                 for ( int i = 0; i < oldActionFiles.length; i++ ) {
                     if ( oldActionFiles[i].exists() ) {
 				        oldActionFiles[i].move(newActionFilesOldFolder[i].getFullPath(), true, true, null);

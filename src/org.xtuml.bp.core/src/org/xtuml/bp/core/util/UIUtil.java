@@ -90,60 +90,62 @@ public class UIUtil
      * @param element null to refresh whole tree
      */
 	public static void refresh(final Object element) {
-		PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+		if (PlatformUI.isWorkbenchRunning()) {
+			PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 
-			@Override
-			public void run() {
-				StructuredViewer viewer = getViewer();
-				Object elementToRefresh = element;
+				@Override
+				public void run() {
+					StructuredViewer viewer = getViewer();
+					Object elementToRefresh = element;
 
-				if (element instanceof IProject) {
-					elementToRefresh = SystemModel_c.SystemModelInstance(
-							Ooaofooa.getDefaultInstance(),
-							new ClassQueryInterface_c() {
-								public boolean evaluate(Object c) {
-									return ((SystemModel_c) c).getName()
-											.equals(
-													((IProject) element)
-															.getName());
-								}
+					if (element instanceof IProject) {
+						elementToRefresh = SystemModel_c.SystemModelInstance(
+								Ooaofooa.getDefaultInstance(),
+								new ClassQueryInterface_c() {
+									public boolean evaluate(Object c) {
+										return ((SystemModel_c) c).getName()
+												.equals(
+														((IProject) element)
+																.getName());
+									}
 
-							}, false);
-				}
-				refreshViewer(viewer, elementToRefresh);
-				IEditorReference[] editorReferences = PlatformUI.getWorkbench()
-						.getActiveWorkbenchWindow().getActivePage()
-						.getEditorReferences();
-				for (IEditorReference reference : editorReferences) {
-					IEditorPart editor = reference.getEditor(false);
-					if (editor != null) {
-						Method method = null;
-						try {
-							method = editor.getClass().getMethod(
-									"refresh", new Class[0]); //$NON-NLS-1$
-						} catch (SecurityException e) {
-							CorePlugin.logError("Unable to locate method for refreshing graphical editors.", e);
-						} catch (NoSuchMethodException e) {
-							// most editors will not have this method, for those we do not
-							// want to refresh anyway
-						}
-						if (method != null) {
+								}, false);
+					}
+					refreshViewer(viewer, elementToRefresh);
+					IEditorReference[] editorReferences = PlatformUI.getWorkbench()
+							.getActiveWorkbenchWindow().getActivePage()
+							.getEditorReferences();
+					for (IEditorReference reference : editorReferences) {
+						IEditorPart editor = reference.getEditor(false);
+						if (editor != null) {
+							Method method = null;
 							try {
-								method.invoke(editor, new Object[0]);
-							} catch (IllegalArgumentException e) {
-								CorePlugin.logError("Unable to invoke refresh method for graphical editor.", e);
-							} catch (IllegalAccessException e) {
-								CorePlugin.logError("Unable to invoke refresh method for graphical editor.", e);
-							} catch (InvocationTargetException e) {
-								CorePlugin.logError("Unable to invoke refresh method for graphical editor.", e);
+								method = editor.getClass().getMethod(
+										"refresh", new Class[0]); //$NON-NLS-1$
+							} catch (SecurityException e) {
+								CorePlugin.logError("Unable to locate method for refreshing graphical editors.", e);
+							} catch (NoSuchMethodException e) {
+								// most editors will not have this method, for those we do not
+								// want to refresh anyway
+							}
+							if (method != null) {
+								try {
+									method.invoke(editor, new Object[0]);
+								} catch (IllegalArgumentException e) {
+									CorePlugin.logError("Unable to invoke refresh method for graphical editor.", e);
+								} catch (IllegalAccessException e) {
+									CorePlugin.logError("Unable to invoke refresh method for graphical editor.", e);
+								} catch (InvocationTargetException e) {
+									CorePlugin.logError("Unable to invoke refresh method for graphical editor.", e);
+								}
 							}
 						}
 					}
+					// tell the masl editors to refresh based on this change to the xtuml model
+					RenameParticipantUtil.synchronizeMaslEditors();
 				}
-				// tell the masl editors to refresh based on this change to the xtuml model
-				RenameParticipantUtil.synchronizeMaslEditors();
-			}
-		});
+			});
+		}
 	}
 	
 	public static StructuredViewer getViewer() {
@@ -258,6 +260,11 @@ public class UIUtil
 					
 					@Override
 					public void run() {
+						try {
+							ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, monitor);
+						} catch (CoreException e) {
+							CorePlugin.logError("Failed to refresh workspace", e);
+						}
 				        if(!viewer.getControl().isDisposed()){
 				            if (element != null) viewer.refresh(element);
 				            else viewer.refresh();
@@ -805,30 +812,5 @@ public class UIUtil
 			// nothing to do
 		}
 
-	}
-
-	public static boolean isDarkTheme() {
-		// get the current workbench theme, set defaults accordingly
-		// NOTE, we could import the swt css libraries but they are not
-		// considered API and access is discouraged. Instead of adding
-		// the dependencies we just use reflection, worse case is we
-		// revert to light mode
-		if(CoreUtil.IsRunningHeadless) {
-			return false;
-		}
-		Object data = PlatformUI.getWorkbench().getDisplay().getData("org.eclipse.e4.ui.css.swt.theme");
-		if (data != null) {
-			try {
-				Method currentTheme = data.getClass().getMethod("getActiveTheme", new Class[0]);
-				Object theme = currentTheme.invoke(data, new Object[0]);
-				Method getLabel = theme.getClass().getMethod("getLabel", new Class[0]);
-				String label = (String) getLabel.invoke(theme, new Object[0]);
-				return label.equals("Dark");
-			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				// ignore
-			}
-		}
-		return false;
 	}
 }

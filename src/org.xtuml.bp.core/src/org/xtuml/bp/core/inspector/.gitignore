@@ -26,6 +26,7 @@ ClassAsSimpleFormalizerInspector.java
 ClassAsSimpleParticipantInspector.java
 ClassAsSubtypeInspector.java
 ClassAsSupertypeInspector.java
+ClassIdentifierInspector.java
 ClassIdentifierAttributeInspector.java
 ClassInEngineInspector.java
 ClassInstanceParticipantInspector.java
@@ -80,6 +81,7 @@ InformalAsynchronousMessageInspector.java
 InformalSynchronousMessageInspector.java
 InitialNodeInspector.java
 InstanceAttributeValueInspector.java
+InstanceBoundOperationInspector.java
 InstanceInspector.java
 InstanceStateMachineInspector.java
 InterfaceInspector.java

@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -16,19 +15,23 @@ import org.eclipse.xtext.ui.resource.IResourceSetProvider;
 import org.xtuml.bp.core.Gd_c;
 import org.xtuml.bp.core.ImportedProvision_c;
 import org.xtuml.bp.core.ImportedRequirement_c;
-import org.xtuml.bp.core.SystemModel_c;
 import org.xtuml.bp.core.common.ModelRoot;
 import org.xtuml.bp.core.common.NonRootModelElement;
 import org.xtuml.bp.ui.canvas.Connector_c;
 import org.xtuml.bp.ui.canvas.ContainingShape_c;
 import org.xtuml.bp.ui.canvas.Diagram_c;
 import org.xtuml.bp.ui.canvas.ElementSpecification_c;
+import org.xtuml.bp.ui.canvas.Elementstyle_c;
+import org.xtuml.bp.ui.canvas.Fillcolorstyle_c;
 import org.xtuml.bp.ui.canvas.FloatingText_c;
 import org.xtuml.bp.ui.canvas.Graphedge_c;
 import org.xtuml.bp.ui.canvas.Graphelement_c;
 import org.xtuml.bp.ui.canvas.GraphicalElement_c;
+import org.xtuml.bp.ui.canvas.Graphicalelementinlayer_c;
 import org.xtuml.bp.ui.canvas.Graphnode_c;
+import org.xtuml.bp.ui.canvas.Layer_c;
 import org.xtuml.bp.ui.canvas.LineSegment_c;
+import org.xtuml.bp.ui.canvas.Linecolorstyle_c;
 import org.xtuml.bp.ui.canvas.ModelSpecification_c;
 import org.xtuml.bp.ui.canvas.ModelTool_c;
 import org.xtuml.bp.ui.canvas.Model_c;
@@ -44,11 +47,15 @@ import org.xtuml.canvas.language.canvas.Connector;
 import org.xtuml.canvas.language.canvas.ConnectorAnchorElement;
 import org.xtuml.canvas.language.canvas.Connectors;
 import org.xtuml.canvas.language.canvas.FloatingText;
+import org.xtuml.canvas.language.canvas.Layer;
 import org.xtuml.canvas.language.canvas.Model;
+import org.xtuml.canvas.language.canvas.ModelPropertiesItem;
 import org.xtuml.canvas.language.canvas.Segment;
 import org.xtuml.canvas.language.canvas.Shape;
 import org.xtuml.canvas.language.canvas.ShapeAnchorElement;
 import org.xtuml.canvas.language.canvas.Shapes;
+import org.xtuml.canvas.language.canvas.StyleItem;
+import org.xtuml.canvas.language.canvas.Styles;
 import org.xtuml.canvas.language.io.utils.EnumUtils;
 import org.xtuml.canvas.language.ui.CanvasUiModule;
 import org.xtuml.canvas.language.ui.internal.LanguageActivator;
@@ -61,67 +68,24 @@ public class CanvasGenerator implements IGraphicalLoader {
 	IResourceSetProvider resourceSetProvider;
 
 	CanvasWriter writer = new CanvasWriter();
-	
+
 	static CanvasGenerator singleton = new CanvasGenerator();
 
 	@Override
-	public void initialize() {
+	public Model_c load(NonRootModelElement container, IFile resource) {
+		try {
+			return generate(container, Ooaofgraphics.getInstance(container.getModelRoot().getId()), resource);
+		} catch (IOException | CoreException e) {
+			CanvasUiModule.logError("Unable to generate xtUML graphics.", e);
+			return null;
+		}
 	}
 
-	@Override
-	public Model_c load(Object container) {
-		if (container instanceof NonRootModelElement) {
-			NonRootModelElement parentElement = (NonRootModelElement) container;
-			IFile parentFile = parentElement.getFile();
-			IFile xtGraphFile = parentFile.getParent()
-					.getFile(new Path(parentFile.getName().replaceAll(".xtuml", ".xtumlg")));
-			try {
-				return generate(parentElement, Ooaofgraphics.getInstance(parentElement.getModelRoot().getId()),
-						xtGraphFile, false);
-			} catch (IOException | CoreException e) {
-				CanvasUiModule.logError("Unable to generate xtUML graphics.", e);
-			}
-		}
-		return null;
-	}
-	
-	@Override
-	public Model_c reload(Object container) {
-		if (container instanceof NonRootModelElement) {
-			NonRootModelElement parentElement = (NonRootModelElement) container;
-			IFile parentFile = parentElement.getFile();
-			IFile xtGraphFile = parentFile.getParent()
-					.getFile(new Path(parentFile.getName().replaceAll(".xtuml", ".xtumlg")));
-			try {
-				return generate(parentElement, Ooaofgraphics.getInstance(parentElement.getModelRoot().getId()),
-						xtGraphFile, true);
-			} catch (IOException | CoreException e) {
-				CanvasUiModule.logError("Unable to generate xtUML graphics.", e);
-			}
-		}
-		return null;
-	}
-
-	public Model_c generate(NonRootModelElement parentElement, ModelRoot destinationRoot, IFile file, boolean reload)
+	private Model_c generate(NonRootModelElement parentElement, ModelRoot destinationRoot, IFile file)
 			throws IOException, CoreException {
-		boolean rewrite = false;
-		if (!file.exists()) {
-			rewrite = true;
-			writer.write(parentElement, file, false);
-			// if not a new system,
-			if (!(parentElement instanceof SystemModel_c)) {
-				// this is from a pre-canvas-language model
-				// instances will exist already, just need to
-				// write the new graphics file
-				return null;
-			}
-		}
 		Model_c xtModel = Model_c.ModelInstance(Ooaofgraphics.getInstance(parentElement.getModelRoot().getId()),
 				m -> ((Model_c) m).getRepresents() == parentElement);
 		if (xtModel != null) {
-			if(!reload) {
-				return xtModel;
-			}
 			// for now just recreate, should be fast enough, if it
 			// gets to a point were its too slow add updated support
 			ModelRoot.disableChangeNotification();
@@ -131,43 +95,67 @@ public class CanvasGenerator implements IGraphicalLoader {
 				ModelRoot.enableChangeNotification();
 			}
 		}
+		// we are attempting to reload everything from scratch always
+		// find any reference path objects associated with this parent
+		ReferencePathManagement.removeAssociated(parentElement);
 		LanguageActivator.getInstance().getInjector("org.xtuml.canvas.language.Canvas").injectMembers(this);
 		URI uri = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
-		ResourceSet rs = resourceSetProvider.get(file.getProject());
-		Resource r = rs.getResource(uri, true);
-		EObject potentialModel = r.getContents().get(0);
-		if (potentialModel != null && potentialModel instanceof Model) {
-			// only one model supported at this time
-			Model model = (Model) potentialModel;
-			xtModel = new Model_c(destinationRoot);
-			int modelType = EnumUtils.getModelType(parentElement);
-			xtModel.setModel_type(modelType);
-			xtModel.setOoa_id(parentElement.Get_ooa_id());
-			Diagram_c xtDiagram = new Diagram_c(destinationRoot);
-			xtModel.relateAcrossR18To(xtDiagram);
-			if (model.getProperties() != null) {
-				xtDiagram.setViewportx(model.getProperties().getPoint().getX());
-				xtDiagram.setViewporty(model.getProperties().getPoint().getY());
-				xtDiagram.setZoom(model.getProperties().getZoom());
-			}
-			xtModel.setRepresents(parentElement);
-			ModelSpecification_c[] modelSpecs = ModelSpecification_c
-					.ModelSpecificationInstances(Ooaofgraphics.getDefaultInstance());
-			for (ModelSpecification_c spec : modelSpecs) {
-				if (spec.getModel_type() == modelType) {
-					spec.relateAcrossR9To(xtModel);
-					break;
+		try {
+			ResourceSet rs = resourceSetProvider.get(file.getProject());
+			Resource r = rs.getResource(uri, true);
+			EObject potentialModel = r.getContents().get(0);
+			if (potentialModel != null && potentialModel instanceof Model) {
+				// only one model supported at this time
+				Model model = (Model) potentialModel;
+				xtModel = new Model_c(destinationRoot);
+				int modelType = EnumUtils.getModelType(parentElement);
+				xtModel.setModel_type(modelType);
+				xtModel.setOoa_id(parentElement.Get_ooa_id());
+				Diagram_c xtDiagram = new Diagram_c(destinationRoot);
+				xtModel.relateAcrossR18To(xtDiagram);
+				if (model.getProperties() != null) {
+					for (ModelPropertiesItem item : model.getProperties().getPropertyItems()) {
+						if (item.getColor() != null) {
+							Elementstyle_c style = new Elementstyle_c(destinationRoot);
+							Fillcolorstyle_c backgroundColor = new Fillcolorstyle_c(destinationRoot);
+							backgroundColor.relateAcrossR400To(style);
+							backgroundColor.setRed(Integer.parseInt(item.getColor().substring(1, 3), 16));
+							backgroundColor.setGreen(Integer.parseInt(item.getColor().substring(3, 5), 16));
+							backgroundColor.setBlue(Integer.parseInt(item.getColor().substring(5, 7), 16));
+							xtModel.relateAcrossR402To(style);
+						} else if (item.getPoint() != null) {
+							xtDiagram.setViewportx(item.getPoint().getX());
+							xtDiagram.setViewporty(item.getPoint().getY());
+						} else {
+							xtDiagram.setZoom(item.getZoom());
+						}
+					}
 				}
+				xtModel.setRepresents(parentElement);
+				ModelSpecification_c[] modelSpecs = ModelSpecification_c
+						.ModelSpecificationInstances(Ooaofgraphics.getDefaultInstance());
+				for (ModelSpecification_c spec : modelSpecs) {
+					if (spec.getModel_type() == modelType) {
+						spec.relateAcrossR9To(xtModel);
+						break;
+					}
+				}
+				xtModel.Initializetools();
+				if (model.getLayers() != null) {
+					for (Layer layer : model.getLayers().getLayers()) {
+						Layer_c l = new Layer_c(xtModel.getModelRoot());
+						l.setLayer_name(layer.getName());
+						l.setVisible(!layer.isInvisible());
+						l.relateAcrossR34To(xtModel);
+					}
+				}
+				createGraphicalElements(xtModel, model, parentElement);
 			}
-			xtModel.Initializetools();
-			createGraphicalElements(xtModel, model, parentElement);
+			return xtModel;
+		} catch (RuntimeException e) {
+			CanvasUiModule.getLog().warn("Resource '" + uri + "' does not exist.", e);
+			return null;
 		}
-		if (rewrite) {
-			// on system creation we write the initial file to process
-			// but need to write the newly created model
-			writer.write(parentElement);
-		}
-		return xtModel;
 	}
 
 	private void createGraphicalElements(Model_c xtModel, Model model, NonRootModelElement parent) {
@@ -220,39 +208,70 @@ public class CanvasGenerator implements IGraphicalLoader {
 		}
 		// need to handle creation symbols differently, use the support function
 		// on Model_c
+		GraphicalElement_c ge;
 		if (container != null) {
 			xtModel.Initializeoncreationsymbols();
 			// update with user values
-			GraphicalElement_c ge = GraphicalElement_c.getOneGD_GEOnR1(xtModel,
+			ge = GraphicalElement_c.getOneGD_GEOnR1(xtModel,
 					g -> ContainingShape_c.getOneGD_CTROnR28(Shape_c.getOneGD_SHPOnR2((GraphicalElement_c) g)) != null);
-			if (ge != null) {
-				ge.setRepresents(representedElement);
-				ge.setOoa_id(representedElement.Get_ooa_id());
-				Graphelement_c graphEle = Graphelement_c.getOneDIM_GEOnR23(ge);
-				graphEle.setPositionx(shape.getBounds().getX());
-				graphEle.setPositiony(shape.getBounds().getY());
-				Graphnode_c node = Graphnode_c.getOneDIM_NDOnR301(graphEle);
-				node.setWidth(shape.getBounds().getW());
-				node.setHeight(shape.getBounds().getH());
-			}
 		} else {
 			UUID toolId = getToolId(xtModel, representedElement, container != null);
 			UUID shapeId = xtModel.Createshape(representedElement == null, toolId);
 			Graphelement_c graphElem = Graphelement_c.getOneDIM_GEOnR23(GraphicalElement_c.getManyGD_GEsOnR1(xtModel),
-					ge -> ((Graphelement_c) ge).getElementid().equals(shapeId));
-			GraphicalElement_c graphicalElem = GraphicalElement_c.getOneGD_GEOnR23(graphElem);
-			Shape_c shp = Shape_c.getOneGD_SHPOnR2(graphicalElem);
-			graphicalElem.setRepresents(representedElement);
-			graphicalElem.setOoa_id(representedElement.Get_ooa_id());
-			graphElem.setPositionx(shape.getBounds().getX());
-			graphElem.setPositiony(shape.getBounds().getY());
-			Graphnode_c node = Graphnode_c.getOneDIM_NDOnR301(graphElem);
-			node.setWidth(shape.getBounds().getW());
-			node.setHeight(shape.getBounds().getH());
+					g -> ((Graphelement_c) g).getElementid().equals(shapeId));
+			ge = GraphicalElement_c.getOneGD_GEOnR23(graphElem);
+			Shape_c shp = Shape_c.getOneGD_SHPOnR2(ge);
 			// Floating text will have been created with the call to API
 			FloatingText_c txt = FloatingText_c.getOneGD_CTXTOnR27(shp);
 			if (txt != null) {
 				updateTextPosition(txt, shape.getText());
+			}
+		}
+		if (ge != null) {
+			ge.setRepresents(representedElement);
+			ge.setOoa_id(representedElement.Get_ooa_id());
+			Graphelement_c graphEle = Graphelement_c.getOneDIM_GEOnR23(ge);
+			graphEle.setPositionx(shape.getBounds().getX());
+			graphEle.setPositiony(shape.getBounds().getY());
+			Graphnode_c node = Graphnode_c.getOneDIM_NDOnR301(graphEle);
+			node.setWidth(shape.getBounds().getW());
+			node.setHeight(shape.getBounds().getH());
+			if (shape.getLayers() != null) {
+				assignLayers(xtModel, ge, shape.getLayers());
+			}
+			if (shape.getStyles() != null) {
+				createStyles(ge, shape.getStyles());
+			}
+		}
+	}
+
+	private void createStyles(GraphicalElement_c ge, Styles styles) {
+		for (StyleItem styleItem : styles.getStyle_items()) {
+			Elementstyle_c style = new Elementstyle_c(ge.getModelRoot());
+			if (styleItem.getFill_color() != null) {
+				Fillcolorstyle_c fillColor = new Fillcolorstyle_c(ge.getModelRoot());
+				fillColor.relateAcrossR400To(style);
+				fillColor.setRed(Integer.parseInt(styleItem.getFill_color().substring(1, 3), 16));
+				fillColor.setGreen(Integer.parseInt(styleItem.getFill_color().substring(3, 5), 16));
+				fillColor.setBlue(Integer.parseInt(styleItem.getFill_color().substring(5, 7), 16));
+			} else if (styleItem.getLine_color() != null) {
+				Linecolorstyle_c lineColor = new Linecolorstyle_c(ge.getModelRoot());
+				lineColor.relateAcrossR400To(style);
+				lineColor.setRed(Integer.parseInt(styleItem.getLine_color().substring(1, 3), 16));
+				lineColor.setGreen(Integer.parseInt(styleItem.getLine_color().substring(3, 5), 16));
+				lineColor.setBlue(Integer.parseInt(styleItem.getLine_color().substring(5, 7), 16));
+			}
+			style.relateAcrossR401To(ge);
+		}
+	}
+
+	private void assignLayers(Model_c xtModel, GraphicalElement_c ge, Iterable<String> layers) {
+		for (String layer : layers) {
+			Layer_c l = Layer_c.getOneGD_LAYOnR34(xtModel, o -> ((Layer_c) o).Get_name().equals(layer));
+			if (l != null) {
+				Graphicalelementinlayer_c eil = new Graphicalelementinlayer_c(ge.getModelRoot());
+				ge.relateAcrossR35To(eil);
+				l.relateAcrossR35To(eil);
 			}
 		}
 	}
@@ -316,6 +335,12 @@ public class CanvasGenerator implements IGraphicalLoader {
 					updateTextPosition(txt, potentialtext.get());
 				}
 			});
+			if (connector.getLayers() != null) {
+				assignLayers(xtModel, graphicalElem, connector.getLayers());
+			}
+			if (connector.getStyles() != null) {
+				createStyles(graphicalElem, connector.getStyles());
+			}
 		}
 	}
 
@@ -381,14 +406,13 @@ public class CanvasGenerator implements IGraphicalLoader {
 		return startElem;
 	}
 
-
 	private UUID getToolId(Model_c xtModel, NonRootModelElement represents, boolean container) {
 		int typeFromReference = EnumUtils.getTypeFromReference(represents, container);
 		// auto creation elements do not have a tool, use the non-imported variant
-		if(represents instanceof ImportedRequirement_c) {
+		if (represents instanceof ImportedRequirement_c) {
 			typeFromReference = Ooatype_c.RequiredInterface;
 		}
-		if(represents instanceof ImportedProvision_c) {
+		if (represents instanceof ImportedProvision_c) {
 			typeFromReference = Ooatype_c.ProvidedInterface;
 		}
 		ModelTool_c[] tools = ModelTool_c.getManyCT_MTLsOnR100(xtModel);

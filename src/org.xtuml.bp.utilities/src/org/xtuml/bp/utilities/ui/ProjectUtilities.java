@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -31,14 +32,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -130,6 +124,7 @@ public class ProjectUtilities {
         try {
             projectHandle.close(new NullProgressMonitor());
             projectHandle.open(new NullProgressMonitor());
+            PersistenceManager.getDefaultInstance().loadProjects(List.of(projectHandle), new NullProgressMonitor());
         } catch (CoreException e1) {
             CorePlugin.logError("Unable to open test project.", e1);
         }
@@ -215,11 +210,12 @@ public class ProjectUtilities {
     					
     					@Override
     					public void run() {
-				            // first delete the model and it's components
-				            PersistableModelComponent rootComponent = PersistenceManager.getRootComponent(projectHandle);
-				
 				            // we need to load each element before deletion for some reason
-				            rootComponent.loadComponentAndChildren(new NullProgressMonitor());
+    						try {
+    							PersistenceManager.getDefaultInstance().loadProjects(List.of(projectHandle), new NullProgressMonitor());
+    						} catch (CoreException e) {
+    							CorePlugin.logError("Failed to load project.", e);
+    						}
 				
 				            // then delete the project itself
 				            try {
@@ -443,22 +439,6 @@ public class ProjectUtilities {
         return result;
     }
 
-    private static boolean rootFolderOptionSet = false;
-
-    /**
-     * Import an existing project into the workspace.
-     * If there are multiple projects in the given folder this will import all
-     * of them.
-     * If the project is in an archive, this will extract it.
-     *
-     * @param rootProjectFolder The folder that contains the existing project.
-     *
-     * @return true if the import was successful, false if not
-     */
-    public static boolean importExistingProject(final String rootProjectFolder) {
-    	return importExistingProject(rootProjectFolder, true);
-    }
-
 	public static boolean importExistingProjectCLI(final String rootProjectFolder, final boolean copyIntoWorkspace) {
 		IOverwriteQuery overwriteQuery = new IOverwriteQuery() {
 			public String queryOverwrite(String file) {
@@ -481,173 +461,26 @@ public class ProjectUtilities {
 		return true;
 	}
     
-    public static boolean importExistingProject(final String rootProjectFolder, final boolean copyIntoWorkspace) {
-		final ExternalProjectImportWizard importWizard = new ExternalProjectImportWizard();
+    /**
+     * Import an existing project into the workspace.
+     * If there are multiple projects in the given folder this will import all
+     * of them.
+     * If the project is in an archive, this will extract it.
+     *
+     * @param rootProjectFolder The folder that contains the existing project.
+     *
+     * @return true if the import was successful, false if not
+     */
+    public static boolean importExistingProject(final String rootProjectFolder) {
+		final ExternalProjectImportWizard importWizard = new ExternalProjectImportWizard(rootProjectFolder);
 		
 		importWizard.init(PlatformUI.getWorkbench(), Selection.getInstance()
 				.getStructuredSelection());
 		final WizardDialog dialog = new WizardDialog(PlatformUI.getWorkbench()
 				.getActiveWorkbenchWindow().getShell(), importWizard);
-		rootFolderOptionSet = false;
-
-		final Runnable setupImport = new Runnable() {
-			public void run() {
-				Shell importWizShell = null;
-				Shell activeShells[] = PlatformUI.getWorkbench().getDisplay().getShells();
-
-				for (int i=0; i<activeShells.length; ++i) {
-					String text = activeShells[i].getText();
-					if ( text.equalsIgnoreCase("Import")) {
-						importWizShell = activeShells[i];
-						break;
-					}
-				}
-
-				if (importWizShell == null) {
-					CorePlugin.logError("Could not find the import wizard dialog.", null);
-					return;
-				}
-				
-				Control[] allChildren = importWizShell.getChildren();
-				
-				if (setRootFolderOptions(allChildren, rootProjectFolder, copyIntoWorkspace)) {
-
-					rootFolderOptionSet = importWizard.performFinish();
-				} else {
-					// Failed to set the options, so just dismiss the dialog
-					importWizard.performCancel();
-					rootFolderOptionSet = false;
-				}
-				dialog.close();
-				importWizShell.dispose();
-				return;
-			}			
-		};
-
-		PlatformUI.getWorkbench().getDisplay().asyncExec(setupImport);
-
-		// Open the dialog so the asyncExec above can setup the import options
 		dialog.open();
 
-		return rootFolderOptionSet;
+		return true;
 	}
 
-    /**
-     * Set the option in the Import dialog
-     * @param allChildren
-     * @param fqFilePath
-     * @return true if all options that need to be set were set, and false otherwise
-     */
-	private static boolean setRootFolderOptions(Control[] allChildren, String fqFilePath, boolean copyIntoWorkspace) {
-		int numOptionsSet  = setRootFolderOptionsInternal(allChildren, fqFilePath, 0, copyIntoWorkspace);
-		return numOptionsSet == 4;
-	}
-	
-	/**
-	 * Recursively examine the given children to find the options required
-	 * for adding an existing project located at the directory or in an archive 
-	 * file.
-	 * @param allChildren
-	 * @return
-	 */
-	private static int setRootFolderOptionsInternal(Control[] allChildren, String fqFilePath, int optionsSet, boolean copyIntoWorkspace) {
-		File testPath = new File(fqFilePath);
-		final boolean isArchive = testPath.isFile();
-		for (int i = 0; optionsSet < 4 && i < allChildren.length; i++) {
-			if (allChildren[i] instanceof Composite) {	
-				optionsSet = setRootFolderOptionsInternal(((Composite)allChildren[i]).getChildren(), fqFilePath, optionsSet, copyIntoWorkspace);
-			} else if (allChildren[i] instanceof Button) {
-			
-				String btnText = ((Button)allChildren[i]).getText();
-				if (btnText.equalsIgnoreCase("Select roo&t directory:")) {
-					// Set the text associated with this button to the 
-					// fully qualified folder name.  We then have to select 
-					// the browse button
-					if(allChildren[i+1] instanceof Combo) {
-						((Combo)allChildren[i+1]).setEnabled(!isArchive);
-						if (!isArchive) {
-							((Button)allChildren[i]).setSelection(!isArchive);
-							UIUtil.dispatchAll();
-							((Combo)allChildren[i+1]).setEnabled(true);
-							((Combo)allChildren[i+1]).forceFocus();
-							UIUtil.dispatchAll();
-							((Combo)allChildren[i+1]).setText(fqFilePath);							
-							((Combo)allChildren[i+1]).notifyListeners(SWT.KeyDown, createKeyEvent(SWT.NONE, SWT.CR, SWT.Selection));
-							UIUtil.dispatchAll();
-							// set focus elsewhere
-							((Button)allChildren[i]).setFocus();
-							((Combo)allChildren[i+1]).notifyListeners(SWT.FocusOut, new Event());
-							UIUtil.dispatchAll();
-						}
-					} else {
-						// for pre eclipse 4.4 use Text widget
-						((Text)allChildren[i+1]).setEnabled(!isArchive);
-						if (!isArchive) {
-							((Text)allChildren[i+1]).setText(fqFilePath);					
-							((Text)allChildren[i+1]).notifyListeners(SWT.FocusOut, new Event());
-							// set focus elsewhere
-							((Text)allChildren[i+1]).setEnabled(false);							
-						}
-					}
-					((Button)allChildren[i]).setSelection(!isArchive);
-					optionsSet++;
-				} else if (btnText.equalsIgnoreCase("Select &archive file:")) {
-					// Set the text associated with this button to the 
-					// fully qualified archive file path.  We then have to select 
-					// the browse button
-					if(allChildren[i+1] instanceof Combo) {
-						((Combo)allChildren[i+1]).setEnabled(isArchive);
-						if (isArchive) {
-							((Button)allChildren[i]).setSelection(isArchive);
-							UIUtil.dispatchAll();
-							((Combo)allChildren[i+1]).setEnabled(true);
-							((Combo)allChildren[i+1]).forceFocus();
-							UIUtil.dispatchAll();
-							((Combo)allChildren[i+1]).setText(fqFilePath);					
-							((Combo)allChildren[i+1]).notifyListeners(SWT.KeyDown, createKeyEvent(SWT.NONE, SWT.CR, SWT.Selection));
-							UIUtil.dispatchAll();
-							// set focus elsewhere
-							((Button)allChildren[i]).setFocus();
-							((Combo)allChildren[i+1]).notifyListeners(SWT.FocusOut, new Event());
-							UIUtil.dispatchAll();
-						}
-					} else {
-						// for pre eclipse 4.4 use Text widget
-						((Text)allChildren[i+1]).setEnabled(isArchive);
-						if (isArchive) {
-							((Text)allChildren[i+1]).setText(fqFilePath);					
-							((Text)allChildren[i+1]).notifyListeners(SWT.FocusOut, new Event());
-							// set focus elsewhere
-							((Text)allChildren[i+1]).setEnabled(false);							
-						}
-					}
-					((Button)allChildren[i]).setSelection(isArchive);
-					optionsSet++;
-				} else if (btnText.equalsIgnoreCase("&Copy projects into workspace")) {
-					((Button)allChildren[i]).setSelection(copyIntoWorkspace);
-					((Button)allChildren[i]).notifyListeners(SWT.Selection,  new Event());
-					optionsSet++;
-				} else if (btnText.equalsIgnoreCase("&Select All")) {
-					((Button)allChildren[i]).setSelection(true);
-					((Button)allChildren[i]).notifyListeners(SWT.Selection,  new Event());
-					optionsSet++;
-				}
-				UIUtil.dispatchAll();
-				
-			} else {
-				Control temp = allChildren[i];
-				temp.getToolTipText();
-			}			
-		}
-		return optionsSet;
-	}
-
-	private static Event createKeyEvent(int modificationKey, char c, int keyCode) {
-		Event keyEvent = new Event();
-		keyEvent.stateMask = modificationKey;
-		keyEvent.character = c;
-		keyEvent.keyCode = keyCode;
-		return keyEvent;
-	}
-	
 }

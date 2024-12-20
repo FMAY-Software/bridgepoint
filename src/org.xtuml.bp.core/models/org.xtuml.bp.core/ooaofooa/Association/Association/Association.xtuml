@@ -51,6 +51,7 @@ return false;
 	1,
 	'',
 	"15004697-1285-4784-abdd-2656dbe48e0b",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("3468a483-ad95-4bef-a1fd-dff54913df1c",
@@ -99,6 +100,7 @@ return result;',
 	1,
 	'',
 	"b384bf80-e350-4849-8785-08972c8a941f",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("b211da5a-e170-4a0f-9b9e-eb9929e0c991",
@@ -174,6 +176,7 @@ end if;
 	1,
 	'',
 	"ff2c304d-24e6-4537-a300-4d98bda1f98c",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("bd937227-54e0-4504-af3a-24c8fe479aaa",
@@ -221,6 +224,7 @@ return Style::None;',
 	1,
 	'',
 	"41ee4306-47d1-45b2-a4c5-91600a0e3391",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("c60a9535-7e3c-458d-b084-da45e9dd6f54",
@@ -252,6 +256,7 @@ INSERT INTO O_TFR
 	1,
 	'',
 	"3468a483-ad95-4bef-a1fd-dff54913df1c",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("ff2c304d-24e6-4537-a300-4d98bda1f98c",
@@ -347,6 +352,7 @@ delete object instance self;',
 	1,
 	'',
 	"bc8567f0-7a5f-432b-a22b-450f0d48dc1a",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("e6b6826c-de26-4157-b77b-e9d823fbe22d",
@@ -391,6 +397,7 @@ select one component related by packageableElem->C_C[R8003];
 	1,
 	'',
 	"4dda3954-20f5-4ead-a502-54311c7021cf",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("41ee4306-47d1-45b2-a4c5-91600a0e3391",
@@ -405,6 +412,7 @@ Bridge:GD',
 	1,
 	'',
 	"53927fcd-62fa-49fa-8e8e-ab2bd10fc757",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("bc8567f0-7a5f-432b-a22b-450f0d48dc1a",
@@ -484,6 +492,7 @@ return false;
 	1,
 	'',
 	"00000000-0000-0000-0000-000000000000",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("2b70ac9f-18b4-4308-9f05-80ac4fea6c9a",
@@ -528,6 +537,7 @@ return false;',
 	1,
 	'',
 	"e6b6826c-de26-4157-b77b-e9d823fbe22d",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("c3bfb50e-3989-4fda-b43d-6276ecc2a301",
@@ -553,7 +563,8 @@ end if;
 ',
 	1,
 	'',
-	"fa5d215d-a278-476e-b996-a38e36ca414b",
+	"628c6b0b-408a-4f31-b7d9-2049636e23d9",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("7db37c64-90c7-45f2-b8f3-82411f18525a",
@@ -570,6 +581,7 @@ return this;',
 	0,
 	'',
 	"c3bfb50e-3989-4fda-b43d-6276ecc2a301",
+	0,
 	0);
 INSERT INTO S_DT_PROXY
 	VALUES ("bc3722c8-5188-4529-8519-cf9eb9816b17",
@@ -608,6 +620,7 @@ end for;',
 	1,
 	'',
 	"7db37c64-90c7-45f2-b8f3-82411f18525a",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("2dd6e6e3-5e2f-465e-8d0b-125c0912c492",
@@ -621,6 +634,7 @@ return package.getPath(path:"") + "::" + self.get_name();',
 	1,
 	'',
 	"6efa13c2-a742-41dc-8538-975276af3443",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("564c0e16-6ce2-4864-880a-b9231370a188",
@@ -633,6 +647,7 @@ INSERT INTO O_TFR
 	1,
 	'',
 	"2dd6e6e3-5e2f-465e-8d0b-125c0912c492",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("fa50f390-f898-48d7-a9dd-02c23b73bb3f",
@@ -671,6 +686,7 @@ return cuttable;',
 	1,
 	'',
 	"564c0e16-6ce2-4864-880a-b9231370a188",
+	0,
 	0);
 INSERT INTO O_TFR
 	VALUES ("d1d1a2e2-12ae-44ea-9cb3-e490457ab30d",
@@ -810,6 +826,7 @@ return true;',
 	1,
 	'',
 	"fa50f390-f898-48d7-a9dd-02c23b73bb3f",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("201576fb-05de-4a71-a031-581901d88999",
@@ -896,6 +913,7 @@ return cardinality_text;',
 	1,
 	'',
 	"d1d1a2e2-12ae-44ea-9cb3-e490457ab30d",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("2cfadbe5-9b95-43e2-8f80-9e2fd0c74de9",
@@ -919,7 +937,7 @@ INSERT INTO O_TFR
 	VALUES ("25e72586-4980-4217-b43b-c45aacc395cd",
 	"fccf477f-dde6-4d1a-9020-5effbe338738",
 	'editAssociation',
-	'',
+	'Use the Binary relationship editor selections and choices to build or modify an association data structure.',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'// Copy parameter data into local variables
@@ -931,13 +949,31 @@ b_cond = param.b_cond;
 b_phrase = param.b_phrase;
 b_mult = param.b_mult;
 part_class = param.part_class;
-migrate_to_assoc = param.migrate_to_assoc;
+is_associative = param.is_associative;
 a_ident = param.a_ident;
 b_ident = param.b_ident;
 a_oir = param.a_oir;
 b_oir = param.b_oir;
 assoc_class = param.assoc_class;
-assoc_formalized = param.assoc_formalized;
+formalize = param.formalize;
+symmetric = param.symmetric;
+
+if (symmetric)
+  // delete the 2nd (''b'' side) phrase; 
+  // note: the existence of a blank phrase for a reflexive is how symmetric condition is recognized.
+  // see: Association::is_symmetric()
+  // this condition is tested for in unrelate, select and elsewhere
+  // copy the cond & mult values from the ''a'' side for symmetry.
+  // note in each case, below, how the b_phrase is actually stored in the ''a'' side class instance.
+  b_phrase = "";
+  b_cond = a_cond;
+  b_mult = a_mult;
+end if;
+
+// init these for possible referential prefix/rename
+edt_mode = 0;
+edt_txt = "";
+select any formclass from instances of O_OBJ where false;  // decl
 
 // Get classes involved in binary relationship
 select one a_class related by a_oir->O_OBJ[R201];
@@ -945,76 +981,40 @@ select one b_class related by b_oir->O_OBJ[R201];
 
 // Get class identifiers specified in the context menu entry
 select any a_identifier from instances of O_ID where false;
-if ("" != a_ident)
-  select any a_identifier related by a_class->O_ID[R104] where (selected.Oid_ID == GD::string_to_int(value:Util::substr(s:a_ident, i1:1, i2:-1)) - 1);
-end if;
 select any b_identifier from instances of O_ID where false;
-if ("" != b_ident)
-  select any b_identifier related by b_class->O_ID[R104] where (selected.Oid_ID == GD::string_to_int(value:Util::substr(s:b_ident, i1:1, i2:-1)) - 1);
+if (formalize)
+  if ("" != a_ident)
+    select any a_identifier related by a_class->O_ID[R104] where (selected.Oid_ID == GD::string_to_int(value:Util::substr(s:a_ident, i1:1, i2:-1)) - 1);
+  end if;
+  if ("" != b_ident)
+    select any b_identifier related by b_class->O_ID[R104] where (selected.Oid_ID == GD::string_to_int(value:Util::substr(s:b_ident, i1:1, i2:-1)) - 1);
+  end if;
 end if;
+
+// Determine if parameter data warrants migration - only if not formalized!
+if (not self.isFormalized())
+  select one simp related by self->R_SIMP[R206];
+  select one linked related by self->R_ASSOC[R206];
+  if (not is_associative and not empty linked)
+    // migrate to simple
+    linked.migrateToSimple();
+    select one simp related by self->R_SIMP[R206];
+    select one linked related by self->R_ASSOC[R206];
+  elif (not empty simp and is_associative)
+    // migrate to linked
+    select any imported_class related by self->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_IOBJ[R8001] where (selected.Obj_ID == assoc_class.Obj_ID);
+    imported_id = GD::NULL_UNIQUE_ID();
+    if (not_empty imported_class)
+      imported_id = imported_class.IObj_ID;
+    end if;
+    simp.migrateToLinked(imported_id:imported_id, using:assoc_class.Obj_ID);
+  end if;
+end if;
+
 
 // Get current association simple or linked determiners.
-select one simp related by self->R_SIMP[R206];
 select one linked related by self->R_ASSOC[R206];
-
-// Determine if parameter data warrants a reformalization.
-// First case is a change from simple to linked or vice versa.
-// NOTE: This case uses established migration functions that will unformalize a
-// formalized association.
-if (not migrate_to_assoc and not empty linked)
-  // migrate to simple
-  linked.migrateToSimple();
-  select one simp related by self->R_SIMP[R206];
-  select one linked related by self->R_ASSOC[R206];
-elif (not empty simp and migrate_to_assoc)
-  // migrate to linked
-  select any imported_class related by self->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_IOBJ[R8001] where (selected.Obj_ID == assoc_class.Obj_ID);
-  imported_id = GD::NULL_UNIQUE_ID();
-  if (not_empty imported_class)
-    imported_id = imported_class.IObj_ID;
-  end if;
-  simp.migrateToLinked(imported_id:imported_id, using:assoc_class.Obj_ID);
-  select one linked related by self->R_ASSOC[R206];
-  select one simp related by self->R_SIMP[R206];
-else
-  // All other cases only need to be checked if the association is already 
-  // formalized.
-  if (self.isFormalized())
-    if (not empty simp)
-      // Check for participating class change
-      // Check for referred to identifier change
-      // Determine if part class for the formalization is the same as the part_class parameter.
-      select one a_form related by a_oir->R_RGO[R203]->R_FORM[R205];
-      if (not empty a_form)
-        select one b_part related by b_oir->R_RTO[R203]->R_PART[R204];
-        select one b_rto related by b_part->R_RTO[R204];
-        if ((a_class.Name == part_class) or (b_rto.Oid_ID != a_identifier.Oid_ID))
-          self.unformalize();
-        end if;
-      else
-        select one a_part related by a_oir->R_RTO[R203]->R_PART[R204];
-        select one a_rto related by a_part->R_RTO[R204];
-        if ((b_class.Name == part_class) or (a_rto.Oid_ID != b_identifier.Oid_ID))
-          self.unformalize();
-        end if;
-      end if;
-    elif (not empty linked)
-      // Check for associative class change
-      select one current_assr related by linked->R_ASSR[R211];
-      if (current_assr.Obj_ID != assoc_class.Obj_ID)
-        self.unformalize();
-      else
-        // Check for referred to identifier change
-        select one oneId related by linked->R_AONE[R209]->R_RTO[R204]->O_ID[R109];
-        select one othId related by linked->R_AOTH[R210]->R_RTO[R204]->O_ID[R109];
-        if (((a_identifier.Oid_ID != oneId.Oid_ID) and (a_identifier.Oid_ID != othId.Oid_ID)) or 
-            ((b_identifier.Oid_ID != oneId.Oid_ID) and (b_identifier.Oid_ID != othId.Oid_ID)))
-          self.unformalize();
-        end if;
-      end if;
-    end if;
-  end if;
-end if;
+select one simp related by self->R_SIMP[R206];
 
 // Set the association number
 self.Numb = GD::string_to_int(value:rel_num);
@@ -1083,30 +1083,73 @@ if (not_empty simp)
   end if;
   
   // formalize the association
-  if ("Not formalized" != part_class and not self.isFormalized())
+  if ( formalize and not self.isFormalized())
     select any non_formalizer from instances of R_PART where false;
     select any identifier from instances of O_ID where false;
-    if (a_class.Name == part_class)
-      non_formalizer = a_part;
-      identifier = a_identifier;
-    elif (b_class.Name == part_class)
-      non_formalizer = b_part;
-      identifier = b_identifier;
-    else  // reflexive
-      reflexive_phrase = Util::substr(s:part_class, i1:0, i2:GD::strlen(s:part_class) - GD::strlen(s:a_class.Name) - 1);
-      if (reflexive_phrase == a_phrase)
+    if (self.is_reflexive())
+      formclass = a_class;  // the only class involved!
+      // Note: for reflexive, the dialog will have presented only one prefix/rename choice
+      if (param.a_edt_mode != 0)
+        edt_mode = param.a_edt_mode;
+        edt_txt = param.a_edt_txt;
+      else
+        edt_mode = param.b_edt_mode;
+        edt_txt = param.b_edt_txt;
+      end if;        
+      if (symmetric)  
+        // Special case: a formalized simple (non-associative) symmetric can only be 1:1.
+        // There is only one role phrase here, stored in the 2nd R_PART - the ''b_part''
+        // Symmetry is denoted by an empty role phrase in R_FORM (unlike non-symmetric reflexive)
+        // So the 1st R_PART must be converted to a R_FORM (it has the blank role phrase)
         non_formalizer = b_part;
         identifier = b_identifier;
       else
+        reflexive_phrase = Util::substr(s:part_class, i1:0, i2:GD::strlen(s:part_class) - GD::strlen(s:a_class.Name) - 1);
+        if (reflexive_phrase == a_phrase)
+          non_formalizer = b_part;
+          identifier = b_identifier;
+        else
+          non_formalizer = a_part;
+          identifier = a_identifier;
+        end if;
+      end if;
+    else
+      if (a_class.Name == part_class)
         non_formalizer = a_part;
         identifier = a_identifier;
+        formclass = b_class;
+        edt_mode = param.a_edt_mode;
+        edt_txt = param.a_edt_txt;
+      elif (b_class.Name == part_class)
+        non_formalizer = b_part;
+        identifier = b_identifier;
+        formclass = a_class;
+        edt_mode = param.b_edt_mode;
+        edt_txt = param.b_edt_txt;
       end if;
     end if;
     simp.formalize(part_oir_id:non_formalizer.OIR_ID, id_id:identifier.Oid_ID);
-  elif ("Not formalized" == part_class and self.isFormalized())
+    // after formalization, handle referential prefixing, renaming as required
+    if (edt_mode != 0)
+      select many orefs related by formclass->O_ATTR[R102]->O_RATTR[R106]->O_REF[R108]
+       where (selected.Rel_ID == simp.Rel_ID);
+      for each oref in orefs
+        select one rattr related by oref->O_RATTR[R108];
+        select one attr related by rattr->O_ATTR[R106];
+        if ((edt_mode == 1) and ("" != edt_txt))
+          attr.Pfx_Mode = 1;
+          attr.Prefix = edt_txt;
+        elif (edt_mode == 2)
+          attr.Pfx_Mode = 2;
+        elif ((edt_mode == 3) and ("" != edt_txt))
+         attr.Root_Nam = edt_txt;
+          rattr.Ref_Mode = 0;
+        end if;
+      end for;
+    end if;
+  elif (not formalize and self.isFormalized())
     self.unformalize();
   end if;
-
 
 // Handle starting from linked association
 elif (not_empty linked)
@@ -1172,26 +1215,30 @@ elif (not_empty linked)
   end if;
 
   // check if the associative class needs to be changed
-  select one current_assr related by linked->R_ASSR[R211];
-  if (current_assr.Obj_ID != assoc_class.Obj_ID)
-    current_id = current_assr.Obj_ID;
-    new_id = assoc_class.Obj_ID;
-    select one current_pkg related by self->PE_PE[R8001]->EP_PKG[R8000];
-    select one current_assr_pkg related by current_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->PE_PE[R8001]->EP_PKG[R8000];
-    select one assoc_class_pkg related by assoc_class->PE_PE[R8001]->EP_PKG[R8000];
-    if (current_pkg.Package_ID != current_assr_pkg.Package_ID)
-      select any imported_current_assr related by current_pkg->PE_PE[R8000]->O_IOBJ[R8001] where (selected.Obj_ID == current_assr.Obj_ID);
-      current_id = imported_current_assr.IObj_ID;
+  // note: this is currently disabled in association editor - see issue #11699
+  // furthermore, it should not be allowed for a formalized association
+  if (not self.isFormalized())
+    select one current_assr related by linked->R_ASSR[R211];
+    if (current_assr.Obj_ID != assoc_class.Obj_ID)
+      current_id = current_assr.Obj_ID;
+      new_id = assoc_class.Obj_ID;
+      select one current_pkg related by self->PE_PE[R8001]->EP_PKG[R8000];
+      select one current_assr_pkg related by current_assr->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201]->PE_PE[R8001]->EP_PKG[R8000];
+      select one assoc_class_pkg related by assoc_class->PE_PE[R8001]->EP_PKG[R8000];
+      if (current_pkg.Package_ID != current_assr_pkg.Package_ID)
+        select any imported_current_assr related by current_pkg->PE_PE[R8000]->O_IOBJ[R8001] where (selected.Obj_ID == current_assr.Obj_ID);
+        current_id = imported_current_assr.IObj_ID;
+      end if;
+      if (current_pkg.Package_ID != assoc_class_pkg.Package_ID)
+        select any imported_assoc_class related by current_pkg->PE_PE[R8000]->O_IOBJ[R8001] where (selected.Obj_ID == assoc_class.Obj_ID);
+        new_id = imported_assoc_class.IObj_ID;
+      end if;
+      success = current_assr.moveAssociation(current_id:current_id, new_id:new_id, end:End::Start);
     end if;
-    if (current_pkg.Package_ID != assoc_class_pkg.Package_ID)
-      select any imported_assoc_class related by current_pkg->PE_PE[R8000]->O_IOBJ[R8001] where (selected.Obj_ID == assoc_class.Obj_ID);
-      new_id = imported_assoc_class.IObj_ID;
-    end if;
-    success = current_assr.moveAssociation(current_id:current_id, new_id:new_id, end:End::Start);
   end if;
 
   // formalize the association
-  if (assoc_formalized and not self.isFormalized())
+  if (formalize and not self.isFormalized())
     one_id = 0;
     oth_id = 0;
     select one aone related by linked->R_AONE[R209];
@@ -1204,7 +1251,33 @@ elif (not_empty linked)
       oth_id = a_identifier.Oid_ID;
     end if;
     linked.formalize(one_id:one_id, oth_id:oth_id);
-  elif (not assoc_formalized and self.isFormalized())
+    // after formalization, handle referential prefixing, renaming as required
+    formclass = assoc_class;
+    select many orefs related by formclass->O_ATTR[R102]->O_RATTR[R106]->O_REF[R108]
+     where (selected.Rel_ID == self.Rel_ID);
+    for each oref in orefs
+      phrs = oref.get_referential_phrase();
+      select one oid related by oref->O_RTIDA[R111]->O_OIDA[R110]->O_ID[R105];
+      if (oid == a_identifier and (phrs == b_phrase))  // phrase check for reflexive case.
+        edt_mode = param.a_edt_mode;
+        edt_txt = param.a_edt_txt;
+      else
+        edt_mode = param.b_edt_mode;
+        edt_txt = param.b_edt_txt;
+      end if;
+      select one rattr related by oref->O_RATTR[R108];
+      select one attr related by rattr->O_ATTR[R106];
+      if ((edt_mode == 1) and ("" != edt_txt))
+        attr.Pfx_Mode = 1;
+        attr.Prefix = edt_txt;
+      elif (edt_mode == 2)
+        attr.Pfx_Mode = 2;
+      elif ((edt_mode == 3) and ("" != edt_txt))
+        attr.Root_Nam = edt_txt;
+        rattr.Ref_Mode = 0;
+      end if;
+    end for;
+  elif (not formalize and self.isFormalized())
     self.unformalize();
   end if;
 
@@ -1212,6 +1285,7 @@ end if;',
 	1,
 	'',
 	"e48e4ea1-7a6e-4e3e-abed-04faba1a0d56",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("0cc3841f-8b79-490d-a49a-d2a7b9c66725",
@@ -1284,7 +1358,7 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"67977b9d-9b4c-4eb2-9faa-92fc6c5103ea",
-	'');
+	'if formalizing a simple binary association, this class is chosen as the participant (R_AOTH) side.');
 INSERT INTO O_TPARM
 	VALUES ("59d417ca-c09f-417e-a591-aa6b29cbf984",
 	"25e72586-4980-4217-b43b-c45aacc395cd",
@@ -1293,7 +1367,7 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"be43ebd1-8096-4598-a90f-c5fe9e6109c2",
-	'');
+	'if formaliz(ing/ed), this is identifier (if any) for the ''a'' side class.  ');
 INSERT INTO O_TPARM
 	VALUES ("4f0244c6-6545-4f5e-a196-37345690ff3a",
 	"25e72586-4980-4217-b43b-c45aacc395cd",
@@ -1301,8 +1375,8 @@ INSERT INTO O_TPARM
 	"ba5eda7a-def5-0000-0000-000000000004",
 	0,
 	'',
-	"59d417ca-c09f-417e-a591-aa6b29cbf984",
-	'');
+	"c15c8cf0-ccd2-40a6-96c5-8d98f48839a0",
+	'if formaliz(ing/ed), this is identifier (if any) for the ''b'' side class.  ');
 INSERT INTO O_TPARM
 	VALUES ("da2651ff-6d0c-4362-a4d4-5a9e41a333c2",
 	"25e72586-4980-4217-b43b-c45aacc395cd",
@@ -1310,7 +1384,7 @@ INSERT INTO O_TPARM
 	"84509681-1256-4002-b6a9-c0d824170d0f",
 	0,
 	'',
-	"4f0244c6-6545-4f5e-a196-37345690ff3a",
+	"4ad1a2b4-cc73-4490-be91-641a2d5af289",
 	'');
 INSERT INTO S_DT_PROXY
 	VALUES ("84509681-1256-4002-b6a9-c0d824170d0f",
@@ -1336,7 +1410,7 @@ INSERT INTO O_TPARM
 	0,
 	'',
 	"8f35344a-f241-4944-ac03-2f1d89376cb2",
-	'');
+	'use this class as the associative.');
 INSERT INTO S_DT_PROXY
 	VALUES ("fccebe2f-504b-427a-8324-057515d05242",
 	"00000000-0000-0000-0000-000000000000",
@@ -1347,21 +1421,72 @@ INSERT INTO S_DT_PROXY
 INSERT INTO O_TPARM
 	VALUES ("4a2a9e4f-80aa-45d5-b7c3-e72d5de559fd",
 	"25e72586-4980-4217-b43b-c45aacc395cd",
-	'assoc_formalized',
+	'formalize',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
 	"aa292418-9630-455b-b5d0-4a5209702ff7",
-	'');
+	'formalization exists or is desired.');
 INSERT INTO O_TPARM
 	VALUES ("be43ebd1-8096-4598-a90f-c5fe9e6109c2",
 	"25e72586-4980-4217-b43b-c45aacc395cd",
-	'migrate_to_assoc',
+	'is_associative',
 	"ba5eda7a-def5-0000-0000-000000000001",
 	0,
 	'',
 	"6b5d0124-17ae-4821-870a-b776d0c38336",
-	'');
+	'the association is associative, or is desired to be.');
+INSERT INTO O_TPARM
+	VALUES ("035cd130-0c72-49ef-994f-d30613d3c15e",
+	"25e72586-4980-4217-b43b-c45aacc395cd",
+	'symmetric',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	0,
+	'',
+	"4a2a9e4f-80aa-45d5-b7c3-e72d5de559fd",
+	'association is reflexive symmetric.');
+INSERT INTO O_TPARM
+	VALUES ("34248b71-6155-4265-aa1e-4a8caa76b1fd",
+	"25e72586-4980-4217-b43b-c45aacc395cd",
+	'a_edt_txt',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"59d417ca-c09f-417e-a591-aa6b29cbf984",
+	'If non-null, used as directed by a_edt_mode.');
+INSERT INTO O_TPARM
+	VALUES ("16d230c8-4047-4cab-a903-f4c308d798b8",
+	"25e72586-4980-4217-b43b-c45aacc395cd",
+	'b_edt_txt',
+	"ba5eda7a-def5-0000-0000-000000000004",
+	0,
+	'',
+	"4f0244c6-6545-4f5e-a196-37345690ff3a",
+	'If non-null, used as directed by b_edt_mode.');
+INSERT INTO O_TPARM
+	VALUES ("c15c8cf0-ccd2-40a6-96c5-8d98f48839a0",
+	"25e72586-4980-4217-b43b-c45aacc395cd",
+	'a_edt_mode',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"34248b71-6155-4265-aa1e-4a8caa76b1fd",
+	'If non-zero, edit a_class referential(s) for this association:
+1 = use a_edt_txt as prefix for each attribute;
+2 = use prefix of referred-to attribute (any)
+3 = rename single referential with a_edt_txt;');
+INSERT INTO O_TPARM
+	VALUES ("4ad1a2b4-cc73-4490-be91-641a2d5af289",
+	"25e72586-4980-4217-b43b-c45aacc395cd",
+	'b_edt_mode',
+	"ba5eda7a-def5-0000-0000-000000000002",
+	0,
+	'',
+	"16d230c8-4047-4cab-a903-f4c308d798b8",
+	'If non-zero, edit b_class referential(s) for this association:
+1 = use a_edt_txt as prefix for each attribute;
+2 = use prefix of referred-to attribute
+3 = rename single referential with a_edt_txt;');
 INSERT INTO O_TFR
 	VALUES ("7e702f2d-f714-4c51-b383-2be831f205f1",
 	"fccf477f-dde6-4d1a-9020-5effbe338738",
@@ -1392,6 +1517,7 @@ end if;',
 	1,
 	'',
 	"25e72586-4980-4217-b43b-c45aacc395cd",
+	0,
 	0);
 INSERT INTO O_TPARM
 	VALUES ("7e33a5f7-188c-480b-9a9a-0c2eeba26f99",
@@ -1427,6 +1553,60 @@ INSERT INTO O_TPARM
 	'',
 	"7e33a5f7-188c-480b-9a9a-0c2eeba26f99",
 	'');
+INSERT INTO O_TFR
+	VALUES ("628c6b0b-408a-4f31-b7d9-2049636e23d9",
+	"fccf477f-dde6-4d1a-9020-5effbe338738",
+	'is_symmetric',
+	'',
+	"ba5eda7a-def5-0000-0000-000000000001",
+	1,
+	'// Two (different, but not editor-enforced) role phrases are mandatory on asymmetric reflexive 
+// associations for selective navigation. In principle, a symmetric reflexive does not require 
+// a phrase. However, this test for symmetry relies on the placement of the single phrase; 
+// allowing no phrase would make the symmetric case indistinguishable from a newly-created 
+// association, when no phrases are yet assigned. 
+// [A ''never_edited'' status for Association could disambiguate; but, phrases surface meaning.]
+// The Binary Association editor suppresses the second phrase (b_part) in the symmetric case.
+// This null phrase is stored in either:
+// - R_FORM (simple, formalized), one of the R_PART instances (simple, unformalized), R_AONE (associative)
+// Note that in each case these represent what was seen as the ''a'' side in the association editor,
+// even though it was the ''b'' phrase that was suppressed [see Association::editAssociation(..)]
+
+symmetric = false;
+if (self.is_reflexive())
+  select one srel related by self->R_SIMP[R206];
+  if (not_empty srel)
+    if (self.isFormalized())
+      select one form related by srel->R_FORM[R208.''relates''];
+      if (form.Txt_Phrs == "")
+        symmetric = true;
+      end if;
+    else
+      select any part related by srel->R_PART[R207.''relates'']
+       where (selected.Txt_Phrs == "");
+      if (not_empty part)  // distinguish from newly created, where both are null
+        select any part related by srel->R_PART[R207.''relates'']
+         where (selected.Txt_Phrs != "");
+        if (not_empty part)
+          symmetric = true;
+        end if;
+      end if;
+    end if;
+  else
+  	// not simple reflexive - must be associative
+    select one aone related by self->R_ASSOC[R206]->R_AONE[R209];
+    if (aone.Txt_Phrs == "")
+      symmetric = true;
+    end if;
+  end if;
+end if;  
+return symmetric;
+',
+	1,
+	'',
+	"fa5d215d-a278-476e-b996-a38e36ca414b",
+	0,
+	1);
 INSERT INTO O_NBATTR
 	VALUES ("40ed956f-425d-4976-8913-ae0859b64e93",
 	"fccf477f-dde6-4d1a-9020-5effbe338738");

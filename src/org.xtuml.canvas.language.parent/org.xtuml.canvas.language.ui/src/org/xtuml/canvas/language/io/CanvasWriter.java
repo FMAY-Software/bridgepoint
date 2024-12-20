@@ -2,35 +2,35 @@ package org.xtuml.canvas.language.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.jface.dialogs.MessageDialogWithToggle;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.xtext.resource.SaveOptions;
 import org.eclipse.xtext.ui.resource.IResourceSetProvider;
-import org.xtuml.bp.core.CorePlugin;
 import org.xtuml.bp.core.Gd_c;
-import org.xtuml.bp.core.common.BridgePointPreferencesStore;
 import org.xtuml.bp.core.common.NonRootModelElement;
 import org.xtuml.bp.ui.canvas.CanvasPlugin;
 import org.xtuml.bp.ui.canvas.Connector_c;
 import org.xtuml.bp.ui.canvas.ContainingShape_c;
 import org.xtuml.bp.ui.canvas.Diagram_c;
+import org.xtuml.bp.ui.canvas.Elementstyle_c;
+import org.xtuml.bp.ui.canvas.Fillcolorstyle_c;
 import org.xtuml.bp.ui.canvas.FloatingText_c;
 import org.xtuml.bp.ui.canvas.Graphconnector_c;
 import org.xtuml.bp.ui.canvas.Graphedge_c;
 import org.xtuml.bp.ui.canvas.Graphelement_c;
 import org.xtuml.bp.ui.canvas.GraphicalElement_c;
 import org.xtuml.bp.ui.canvas.Graphnode_c;
+import org.xtuml.bp.ui.canvas.Layer_c;
 import org.xtuml.bp.ui.canvas.LineSegment_c;
+import org.xtuml.bp.ui.canvas.Linecolorstyle_c;
 import org.xtuml.bp.ui.canvas.Model_c;
 import org.xtuml.bp.ui.canvas.Ooaofgraphics;
 import org.xtuml.bp.ui.canvas.Shape_c;
@@ -48,8 +48,11 @@ import org.xtuml.canvas.language.canvas.EnumEnd;
 import org.xtuml.canvas.language.canvas.FloatingText;
 import org.xtuml.canvas.language.canvas.FloatingTexts;
 import org.xtuml.canvas.language.canvas.GraphicalElement;
+import org.xtuml.canvas.language.canvas.Layer;
+import org.xtuml.canvas.language.canvas.Layers;
 import org.xtuml.canvas.language.canvas.Model;
 import org.xtuml.canvas.language.canvas.ModelProperties;
+import org.xtuml.canvas.language.canvas.ModelPropertiesItem;
 import org.xtuml.canvas.language.canvas.ModelRender;
 import org.xtuml.canvas.language.canvas.Point;
 import org.xtuml.canvas.language.canvas.PointDefinition;
@@ -59,6 +62,8 @@ import org.xtuml.canvas.language.canvas.Shape;
 import org.xtuml.canvas.language.canvas.ShapeAnchorElement;
 import org.xtuml.canvas.language.canvas.Shapes;
 import org.xtuml.canvas.language.canvas.StartAnchor;
+import org.xtuml.canvas.language.canvas.StyleItem;
+import org.xtuml.canvas.language.canvas.Styles;
 import org.xtuml.canvas.language.io.utils.EnumUtils;
 import org.xtuml.canvas.language.ui.CanvasUiModule;
 import org.xtuml.canvas.language.ui.internal.LanguageActivator;
@@ -76,72 +81,75 @@ public class CanvasWriter implements IGraphicalWriter {
 	private NonRootModelElement diagramRepresents;
 
 	@Override
-	public void initialize() {
-		// nothing to do
-	}
-
-	@Override
 	public void write(NonRootModelElement model) {
-		write(model, false);
-	}
-	
-	@Override
-	public void write(NonRootModelElement model, boolean generate) {
-		String textualSerialization = CorePlugin.getDefault().getPreferenceStore()
-				.getString(BridgePointPreferencesStore.GRAPHICS_TEXTUAL_SERIALIZATION);
-		if(MessageDialogWithToggle.NEVER.equals(textualSerialization)) {
-			return;
-		}
-		IFile parentFile = model.getFile();
-		IFile xtGraphFile = parentFile.getParent()
-				.getFile(new Path(parentFile.getName().replaceAll(".xtuml", ".xtumlg")));
 		try {
-			write(model, xtGraphFile, generate);
+			write(model, model.getPersistableComponent().getGraphicsFile());
 		} catch (IOException | CoreException e) {
 			CanvasUiModule.logError("Unable to persist textual graphics", e);
 		}
 	}
 
-	public void write(NonRootModelElement diagramRepresents, IFile file, boolean generate) throws IOException, CoreException {
+	public void write(NonRootModelElement diagramRepresents, IFile file) throws IOException, CoreException {
 		// create an empty file
 		if (!file.exists()) {
 			file.create(new ByteArrayInputStream(new byte[0]), true, new NullProgressMonitor());
 		}
 		Model_c xtModel = Model_c.ModelInstance(Ooaofgraphics.getInstance(diagramRepresents.getModelRoot().getId()),
 				m -> ((Model_c) m).getRepresents() == diagramRepresents);
-		if (xtModel == null) {
-			// if told to generate do that then write
-			if(generate) {
-				CanvasGenerator.getSingleton().load(diagramRepresents);
+		if (xtModel != null) {
+			CanvasPlugin.setGraphicalRepresents(xtModel);
+			LanguageActivator.getInstance().getInjector("org.xtuml.canvas.language.Canvas").injectMembers(this);
+			URI uri = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
+			ResourceSet rs = resourceSetProvider.get(file.getProject());
+			Resource r = rs.getResource(uri, true);
+			r.getContents().clear();
+			model = factory.createModel();
+			ModelRender modelRender = factory.createModelRender();
+			modelRender.setImportURI(ReferencePathManagement.getPath(diagramRepresents));
+			model.setRender(modelRender);
+			Diagram_c diagram = Diagram_c.getOneDIM_DIAOnR18(xtModel);
+			Fillcolorstyle_c backgroundColor = Fillcolorstyle_c
+					.getOneSTY_FCSOnR400(Elementstyle_c.getManySTY_SsOnR402(xtModel));
+			if ((diagram != null && diagram.getViewportx() != 0 && diagram.getViewporty() != 0)
+					|| (backgroundColor != null)) {
+				ModelProperties properties = factory.createModelProperties();
+				if (diagram != null && diagram.getViewportx() != 0 && diagram.getViewporty() != 0) {
+					ModelPropertiesItem pointItem = factory.createModelPropertiesItem();
+					Point viewport = factory.createPoint();
+					viewport.setX((int) diagram.getViewportx());
+					viewport.setY((int) diagram.getViewporty());
+					pointItem.setPoint(viewport);
+					properties.getPropertyItems().add(pointItem);
+					ModelPropertiesItem zoomItem = factory.createModelPropertiesItem();
+					zoomItem.setZoom((int) diagram.getZoom());
+					properties.getPropertyItems().add(zoomItem);
+				}
+				if (backgroundColor != null) {
+					ModelPropertiesItem colorItem = factory.createModelPropertiesItem();
+					colorItem.setColor(String.format("#%02x%02x%02x", backgroundColor.getRed(),
+							backgroundColor.getGreen(), backgroundColor.getBlue()));
+					properties.getPropertyItems().add(colorItem);
+				}
+				model.setProperties(properties);
 			}
-			return;
+			this.diagramRepresents = diagramRepresents;
+			Layer_c[] layers = Layer_c.getManyGD_LAYsOnR34(xtModel);
+			if (layers.length > 0) {
+				Layers ls = factory.createLayers();
+				for (Layer_c layer : layers) {
+					Layer l = factory.createLayer();
+					l.setName(layer.Get_name());
+					l.setInvisible(!layer.getVisible());
+					ls.getLayers().add(l);
+				}
+				model.setLayers(ls);
+			}
+			populateModel();
+			r.getContents().add(model);
+			SaveOptions.Builder options = SaveOptions.newBuilder();
+			options.format();
+			r.save(options.getOptions().toOptionsMap());
 		}
-		CanvasPlugin.setGraphicalRepresents(xtModel);
-		LanguageActivator.getInstance().getInjector("org.xtuml.canvas.language.Canvas").injectMembers(this);
-		URI uri = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
-		ResourceSet rs = resourceSetProvider.get(file.getProject());
-		Resource r = rs.getResource(uri, true);
-		r.getContents().clear();
-		model = factory.createModel();
-		ModelRender modelRender = factory.createModelRender();
-		modelRender.setImportURI(ReferencePathManagement.getPath(diagramRepresents));
-		model.setRender(modelRender);
-		Diagram_c diagram = Diagram_c.getOneDIM_DIAOnR18(xtModel);
-		if (diagram != null && diagram.getViewportx() != 0 && diagram.getViewporty() != 0) {
-			ModelProperties properties = factory.createModelProperties();
-			properties.setZoom((int) diagram.getZoom());
-			Point viewport = factory.createPoint();
-			viewport.setX((int) diagram.getViewportx());
-			viewport.setY((int) diagram.getViewporty());
-			properties.setPoint(viewport);
-			model.setProperties(properties);
-		}
-		this.diagramRepresents = diagramRepresents;
-		populateModel();
-		r.getContents().add(model);
-		SaveOptions.Builder options = SaveOptions.newBuilder();
-		options.format();
-		r.save(options.getOptions().toOptionsMap());
 	}
 
 	private void populateModel() {
@@ -188,6 +196,9 @@ public class CanvasWriter implements IGraphicalWriter {
 		connector.setPolyline(createPolyline(con));
 		connector.setAnchors(anchors);
 		createText(con, connector);
+		Stream.of(Layer_c.getManyGD_LAYsOnR35(conEle)).sorted(Comparator.comparing(Layer_c::Get_name))
+				.forEach(layer -> connector.getLayers().add(layer.Get_name()));
+		createStyles(conEle, connector::setStyles);
 		return connector;
 	}
 
@@ -232,11 +243,32 @@ public class CanvasWriter implements IGraphicalWriter {
 		}
 	}
 
+	private void createStyles(GraphicalElement_c ge, Consumer<Styles> setter) {
+		Fillcolorstyle_c fillColor = Fillcolorstyle_c.getOneSTY_FCSOnR400(Elementstyle_c.getManySTY_SsOnR401(ge));
+		Linecolorstyle_c lineColor = Linecolorstyle_c.getOneSTY_LCSOnR400(Elementstyle_c.getManySTY_SsOnR401(ge));
+		if (fillColor != null || lineColor != null) {
+			Styles styles = factory.createStyles();
+			if (fillColor != null) {
+				StyleItem fillItem = factory.createStyleItem();
+				fillItem.setFill_color(
+						String.format("#%02x%02x%02x", fillColor.getRed(), fillColor.getGreen(), fillColor.getBlue()));
+				styles.getStyle_items().add(fillItem);
+			}
+			if (lineColor != null) {
+				StyleItem lineItem = factory.createStyleItem();
+				lineItem.setLine_color(
+						String.format("#%02x%02x%02x", lineColor.getRed(), lineColor.getGreen(), lineColor.getBlue()));
+				styles.getStyle_items().add(lineItem);
+			}
+			setter.accept(styles);
+		}
+	}
+
 	private String getNameFromPath(String represents) {
 		String containerPath = diagramRepresents.getPath();
 		String elementName = represents.replaceFirst(containerPath + "::", "");
-		return elementName.replaceAll(" ", "").replaceAll(":", "__").replaceAll("\\.", "_").replaceAll("-",
-				"").replaceAll(">", "").replaceAll("\\(", "_").replaceAll("\\)", "_");
+		return elementName.replaceAll(" ", "").replaceAll(":", "__").replaceAll("\\.", "_").replaceAll("-", "")
+				.replaceAll(">", "").replaceAll("\\(", "_").replaceAll("\\)", "_");
 	}
 
 	private Polyline createPolyline(Connector_c con) {
@@ -280,6 +312,9 @@ public class CanvasWriter implements IGraphicalWriter {
 			shape.setContainer("container");
 		}
 		createText(shp, shape);
+		Stream.of(Layer_c.getManyGD_LAYsOnR35(ele)).sorted(Comparator.comparing(Layer_c::Get_name))
+				.forEach(layer -> shape.getLayers().add(layer.Get_name()));
+		createStyles(ele, shape::setStyles);
 		return shape;
 	}
 
@@ -420,34 +455,6 @@ public class CanvasWriter implements IGraphicalWriter {
 			;
 		}
 		return shape;
-	}
-
-	@Override
-	public void nameChange(NonRootModelElement modelElement, Object oldValue) {
-		IFile parentFile = modelElement.getFile();
-		// remove old file
-		IFile oldFile = parentFile.getParent().getFile(new Path(((String) oldValue + ".xtumlg")));
-		if (oldFile.exists()) {
-			PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
-				Stream.of(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPages()).forEach(p -> {
-					Stream.of(p.getEditorReferences()).forEach(ref -> {
-						try {
-							IFile editorInputFile = ref.getEditorInput().getAdapter(IFile.class);
-							if (editorInputFile.equals(oldFile)) {
-								p.closeEditor(ref.getEditor(false), false);
-							}
-						} catch (PartInitException e) {
-							CanvasUiModule.logError("Failed to close existing editor after file deletion.", e);
-						}
-					});
-				});
-			});
-			try {
-				oldFile.delete(true, new NullProgressMonitor());
-			} catch (CoreException e) {
-				CanvasUiModule.logError("Could not delete old textual graphics file on rename.", e);
-			}
-		}
 	}
 
 }

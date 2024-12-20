@@ -3017,28 +3017,6 @@ INSERT INTO PE_PE
 	"00000000-0000-0000-0000-000000000000",
 	1);
 INSERT INTO S_SYNC
-	VALUES ("21c11e44-1120-498d-8b69-a8602e0d0ee3",
-	"00000000-0000-0000-0000-000000000000",
-	'R_REL_Unformalize',
-	'ContextMenuFunction: TRUE
-',
-	'// UI: relationship is formalized
-select any rel from instances of R_REL
-   where USER::selectOne(id:selected.Rel_ID);
-rel.unformalize();
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("21c11e44-1120-498d-8b69-a8602e0d0ee3",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
 	VALUES ("8e23a035-80af-42d1-a6bc-9fa81a0f2dff",
 	"00000000-0000-0000-0000-000000000000",
 	'SM_TXN_RemoveEvent',
@@ -3056,108 +3034,6 @@ txn.removeEvent();
 	0);
 INSERT INTO PE_PE
 	VALUES ("8e23a035-80af-42d1-a6bc-9fa81a0f2dff",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("a2bd74b9-2d6d-4582-979e-b6f3d34b00b9",
-	"00000000-0000-0000-0000-000000000000",
-	'R_REL_BinaryFormalize',
-	'ContextMenuFunction: TRUE
-Label1: "Class"
-',
-	'// UI: relationship is not formalized
-select any rel from instances of R_REL
-   where USER::selectOne(id:selected.Rel_ID);
-select one simp related by rel->R_SIMP[R206];
-select any non_formalizer related by simp->R_PART[R207]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201]
-    where USER::selectOne(id:selected.Obj_ID) and simp.canParticipate(id: selected.Obj_ID);
-if ( not_empty non_formalizer )
-  select any Identifier related by non_formalizer->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-  if ( not_empty Identifier )
-    simp.formalize( part_oir_id: non_formalizer.Obj_ID, id_id: Identifier.Oid_ID );
-  end if;
-end if;
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("a2bd74b9-2d6d-4582-979e-b6f3d34b00b9",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("a4203cc2-90e0-4688-8433-daa76959043a",
-	"00000000-0000-0000-0000-000000000000",
-	'R_REL_LinkedFormalize',
-	'ContextMenuFunction: TRUE
-Label1: ModelClass_c.getOneO_OBJOnR104(One_idInstances[0]).getName()
-Label2: ModelClass_c.getOneO_OBJOnR104(Oth_idInstances[0]).getName()
-',
-	'// UI: relationship is not formalized
-select any rel from instances of R_REL
-   where USER::selectOne(id:selected.Rel_ID);
-select one a_rel related by rel->R_ASSOC[R206];
-select one one_obj related by a_rel->R_AONE[R209]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201];
-select one oth_obj related by a_rel->R_AOTH[R210]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201];
-select any one_id related by one_obj->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-select any oth_id related by oth_obj->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-
-if ( not_empty one_id and not_empty oth_id )
-  a_rel.formalize( one_id: one_id.Oid_ID, oth_id: oth_id.Oid_ID );
-end if;
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("a4203cc2-90e0-4688-8433-daa76959043a",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("d49e0190-3c80-46b1-a2d3-b7ec77dcb9be",
-	"00000000-0000-0000-0000-000000000000",
-	'R_REL_InheritanceFormalize',
-	'ContextMenuFunction: TRUE
-',
-	'// UI: relationship is not formalized
-select any rel from instances of R_REL
-   where USER::selectOne(id:selected.Rel_ID);
-select one ss_rel related by rel->R_SUBSUP[R206];
-select one super_obj related by ss_rel->R_SUPER[R212]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201];
-select any Identifier related by super_obj->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-if ( not_empty Identifier )
-  ss_rel.formalize( id: Identifier.Oid_ID );
-end if;
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("d49e0190-3c80-46b1-a2d3-b7ec77dcb9be",
 	1,
 	"42d5848f-dabe-43e1-9ac4-b840f2789360",
 	"00000000-0000-0000-0000-000000000000",
@@ -3202,120 +3078,6 @@ attr.moveDown();
 	0);
 INSERT INTO PE_PE
 	VALUES ("1d9964fe-ad87-4f81-93e7-b81a2dba913e",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("d189a5e9-77f2-4726-8f92-3332a89e6bcf",
-	"00000000-0000-0000-0000-000000000000",
-	'R_SUB_InheritanceFormalize',
-	'ContextMenuFunction: TRUE
-',
-	'// UI: relationship is not formalized
-select any r_sub from instances of R_SUB
-   where USER::selectOne(id:selected.Rel_ID);
-select one ss_rel related by r_sub->R_SUBSUP[R213];
-select one super_obj related by ss_rel->R_SUPER[R212]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201];
-select any Identifier related by super_obj->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-if ( not_empty Identifier )
-  ss_rel.formalize( id: Identifier.Oid_ID );
-end if;
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("d189a5e9-77f2-4726-8f92-3332a89e6bcf",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("fe536389-8a3f-4e2a-89f8-5946030468d0",
-	"00000000-0000-0000-0000-000000000000",
-	'R_ASSR_LinkedFormalize',
-	'ContextMenuFunction: TRUE
-Label1: ModelClass_c.getOneO_OBJOnR104(One_idInstances[0]).getName()
-Label2: ModelClass_c.getOneO_OBJOnR104(Oth_idInstances[0]).getName()
-',
-	'// UI: relationship is not formalized
-select any assr from instances of R_ASSR
-   where USER::selectOne(id:selected.Rel_ID);
-select one a_rel related by assr->R_ASSOC[R211];
-select one one_obj related by a_rel->R_AONE[R209]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201];
-select one oth_obj related by a_rel->R_AOTH[R210]->R_RTO[R204]
-   ->R_OIR[R203]->O_OBJ[R201];
-select any one_id related by one_obj->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-select any oth_id related by oth_obj->O_ID[R104]
-    where USER::selectOne(id:selected.Obj_ID) and
-       O_ID::hasAttributes(obj_id: selected.Obj_ID, oid_id: selected.Oid_ID );
-
-if ( not_empty one_id and not_empty oth_id )
-  a_rel.formalize( one_id: one_id.Oid_ID, oth_id: oth_id.Oid_ID );
-end if;
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("fe536389-8a3f-4e2a-89f8-5946030468d0",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("d0b8a8f3-8723-488a-a88b-09c2a6f85a22",
-	"00000000-0000-0000-0000-000000000000",
-	'R_ASSR_Unformalize',
-	'ContextMenuFunction: TRUE
-',
-	'// UI: relationship is formalized
-select any assr from instances of R_ASSR
-   where USER::selectOne(id:selected.Rel_ID);
-select one rel related by assr->R_ASSOC[R211]->R_REL[R206];
-rel.unformalize();
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("d0b8a8f3-8723-488a-a88b-09c2a6f85a22",
-	1,
-	"42d5848f-dabe-43e1-9ac4-b840f2789360",
-	"00000000-0000-0000-0000-000000000000",
-	1);
-INSERT INTO S_SYNC
-	VALUES ("0c88a511-2e6e-4694-9d35-25229537c3bb",
-	"00000000-0000-0000-0000-000000000000",
-	'R_SUB_Unformalize',
-	'ContextMenuFunction: TRUE
-',
-	'// UI: relationship is formalized
-select any r_sub from instances of R_SUB
-   where USER::selectOne(id:selected.Rel_ID);
-select one rel related by r_sub->R_SUBSUP[R213]->R_REL[R206];
-rel.unformalize();
-',
-	"ba5eda7a-def5-0000-0000-000000000000",
-	1,
-	'',
-	0,
-	0);
-INSERT INTO PE_PE
-	VALUES ("0c88a511-2e6e-4694-9d35-25229537c3bb",
 	1,
 	"42d5848f-dabe-43e1-9ac4-b840f2789360",
 	"00000000-0000-0000-0000-000000000000",
@@ -6054,6 +5816,14 @@ if not_empty element
                                             USER::selectOne(id:selected.Obj_ID);
   if not_empty selectedObj
     unrelate element from existingElement across R101;
+    element.Ref_Num = 1;
+    select many existing_refs related by element->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_IOBJ[R8001]
+      where selected.IObj_ID != element.IObj_ID and selected.Obj_ID == selectedObj.Obj_ID;
+    for each existing_ref in existing_refs
+      if existing_ref.Ref_Num >= element.Ref_Num
+        element.Ref_Num = existing_ref.Ref_Num + 1;
+      end if;
+    end for;
     relate element to selectedObj across R101;
 end if;
 end if;',
@@ -7821,6 +7591,8 @@ INSERT INTO S_SYNC
 	'select any is from instances of C_AS where USER::selectOne(id:selected.Id);
 if(not_empty is)
   is.Direction = IFDirectionType::ServerClient;
+  select one ep related by is->C_EP[R4004];
+  ep.Direction = IFDirectionType::ServerClient;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -7841,6 +7613,8 @@ INSERT INTO S_SYNC
 	'select any io from instances of C_IO where USER::selectOne(id:selected.Id);
 if(not_empty io)
   io.Direction = IFDirectionType::ServerClient;
+  select one ep related by io->C_EP[R4004];
+  ep.Direction = IFDirectionType::ServerClient;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -7861,6 +7635,8 @@ INSERT INTO S_SYNC
 	'select any is from instances of C_AS where USER::selectOne(id:selected.Id);
 if(not_empty is)
   is.Direction = IFDirectionType::ClientServer;
+  select one ep related by is->C_EP[R4004];
+  ep.Direction = IFDirectionType::ClientServer;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -7881,6 +7657,8 @@ INSERT INTO S_SYNC
 	'select any io from instances of C_IO where USER::selectOne(id:selected.Id);
 if(not_empty io)
   io.Direction = IFDirectionType::ClientServer;
+  select one ep related by io->C_EP[R4004];
+  ep.Direction = IFDirectionType::ClientServer;
 end if;',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
@@ -8304,7 +8082,26 @@ INSERT INTO S_SYNC
 	'ContextMenuFunction: TRUE
 Import: org.xtuml.bp.core.common.NonRootModelElement
 ',
-	'// Select current state of specified relationship
+	'/*
+This function is interpreted by wizardry to construct and manage an edit dialog which is presented 
+at first creation of a binary association, simple or associative, and on subsequent edit requests.
+
+The dialog presents controls which collect edit data specifying the association properties.
+On ''Finish'', Association::editAssociation() operation populates the association data structure.
+
+Values associated with the particpating classes are designated by ''a_'' and ''b_'' prefixes where 
+the association line graphic has been drawn from class ''a'' to class ''b'' - even if reflexive.
+The ''a'' class is presented as the upper line showing name, conditionality, role phrase and multiplicity.
+Unless the association is marked as symmetric, the ''b'' class is presented on the line below.
+
+The dialog supports formalization where possible and provides for attribute prefixing or rename.
+
+Note: (to the uninitiated) this code is parsed and reorganized as wizard pages; it is not executed linearly.
+Dialog field presentation cannot be controlled by if..else logic; all USER/LAYOUT::XXX() must be properly populated unconditionally.
+Dialog field visibility is dependent on USER::dependsOn() field2 status, overriden by any comparison logic. See #11554 notes.
+*/
+
+// Select current state of specified relationship
 select any r_rel from instances of R_REL where USER::selectOne(id:selected.Rel_ID);
 
 select any a_oir from instances of R_OIR where false;
@@ -8329,14 +8126,24 @@ select one b_aoth related by b_oir->R_RTO[R203]->R_AOTH[R204];
 select one a_class related by a_oir->O_OBJ[R201];
 select one b_class related by b_oir->O_OBJ[R201];
 
-phrases_required = a_class.Obj_ID == b_class.Obj_ID or PREF::getBoolean(name:"bridgepoint_prefs_require_role_phrases");
+is_reflexive = r_rel.is_reflexive();
+is_formalized = r_rel.isFormalized();
+phrases_required = PREF::getBoolean(name:"bridgepoint_prefs_require_role_phrases");
+formalize_required = PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations");
+get_phrase = phrases_required OR is_reflexive;
 
 // Association number
 default_rel_num = GD::int_to_string(value:r_rel.Numb);
 rel_num = USER::getText(default:default_rel_num, prompt:"Association Number", require_value:true, validate_name:false);
 LAYOUT::setLayout(field_name:"rel_num", row_num:"1", width:"1", height:"1");
 
-// A label
+// reflexive associations may be symmetric: only one set of multiplicity, conditionality and role phrase apply.
+symmetric = r_rel.is_symmetric(); // get existing value for use as default
+is_symmetric = USER::getCheckbox(default:symmetric, prompt:"Symmetric", disabled:false);
+LAYOUT::setLayout(field_name:"is_symmetric", row_num:"1", width:"1", height:"1");
+USER::dependsOn(field1:"is_symmetric", field2:"rel_num", inverse:false, comparison:"v_is_reflexive");
+
+// A class label 
 a_label1 = USER::getLabel(label:a_class.Name);
 LAYOUT::setLayout(field_name:"a_label1", row_num:"2", width:"1", height:"1");
 
@@ -8361,7 +8168,7 @@ elif (not_empty b_aone)
 elif (not_empty b_aoth)
   default_a_phrase = b_aoth.Txt_Phrs;
 end if;
-a_phrase = USER::getText(default:default_a_phrase, prompt:"", require_value:phrases_required, validate_name:true);
+a_phrase = USER::getText(default:default_a_phrase, prompt:"", require_value:get_phrase, validate_name:true);
 LAYOUT::setLayout(field_name:"a_phrase", row_num:"2", width:"2", height:"1");
 
 // A to B multiplicity
@@ -8374,13 +8181,14 @@ end if;
 a_mult = USER::getToggle(option1:default_a_mult, option2:other_a_mult, prompt:"");
 LAYOUT::setLayout(field_name:"a_mult", row_num:"2", width:"1", height:"1");
 
-// B label
+// A to B class label
 b_label1 = USER::getLabel(label:b_class.Name);
 LAYOUT::setLayout(field_name:"b_label1", row_num:"2", width:"1", height:"1");
 
-// B label
+// B class label
 b_label2 = USER::getLabel(label:b_class.Name);
 LAYOUT::setLayout(field_name:"b_label2", row_num:"3", width:"1", height:"1");
+USER::dependsOn(field1:"b_label2", field2:"is_symmetric", inverse:true, comparison:"");
 
 // B to A conditionality
 default_b_cond = "Conditionally";
@@ -8391,6 +8199,7 @@ if ((not_empty a_part and a_part.Cond == 0) or (not_empty a_form and a_form.Cond
 end if;
 b_cond = USER::getToggle(option1:default_b_cond, option2:other_b_cond, prompt:"");
 LAYOUT::setLayout(field_name:"b_cond", row_num:"3", width:"1", height:"1");
+USER::dependsOn(field1:"b_cond", field2:"is_symmetric", inverse:true, comparison:"");
 
 // B to A phrase
 default_b_phrase = "";
@@ -8403,8 +8212,9 @@ elif (not_empty a_aone)
 elif (not_empty a_aoth)
   default_b_phrase = a_aoth.Txt_Phrs;
 end if;
-b_phrase = USER::getText(default:default_b_phrase, prompt:"", require_value:phrases_required, validate_name:true);
+b_phrase = USER::getText(default:default_b_phrase, prompt:"", require_value:get_phrase, validate_name:true);
 LAYOUT::setLayout(field_name:"b_phrase", row_num:"3", width:"2", height:"1");
+USER::dependsOn(field1:"b_phrase", field2:"is_symmetric", inverse:true, comparison:"");
 
 // B to A multiplicity
 default_b_mult = "One";
@@ -8415,207 +8225,539 @@ if ((not_empty a_part and a_part.Mult == 1) or (not_empty a_form and a_form.Mult
 end if;
 b_mult = USER::getToggle(option1:default_b_mult, option2:other_b_mult, prompt:"");
 LAYOUT::setLayout(field_name:"b_mult", row_num:"3", width:"1", height:"1");
+USER::dependsOn(field1:"b_mult", field2:"is_symmetric", inverse:true, comparison:"");
 
-// A label
+// B to A class label
 a_label2 = USER::getLabel(label:a_class.Name);
 LAYOUT::setLayout(field_name:"a_label2", row_num:"3", width:"1", height:"1");
+USER::dependsOn(field1:"a_label2", field2:"is_symmetric", inverse:true, comparison:"");
 
-// Is associavitve
-select one assoc related by r_rel->R_ASSOC[R206];
-is_associative = not_empty assoc;
-associative_rel = USER::getCheckbox(default:is_associative, prompt:"Associative", disabled:false);
-LAYOUT::setLayout(field_name:"associative_rel", row_num:"4", width:"1", height:"1");
+// initialize possible data values that may appear in dialogs
+// Note: all data appearing in any USER/LAYOUT EE invocation must be initialized - used or not!
 
-// Associative class
-select one assr related by r_rel->R_ASSOC[R206]->R_ASSR[R211]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
-select many associative_classes related by r_rel->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_OBJ[R8001] where (selected.Obj_ID != a_class.Obj_ID and selected.Obj_ID != b_class.Obj_ID);
-select many associative_imported_classes related by r_rel->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_IOBJ[R8001]->O_OBJ[R101] where (selected.Obj_ID != a_class.Obj_ID and selected.Obj_ID != b_class.Obj_ID);
-associative_classes = associative_classes + associative_imported_classes;
+a_formalizing_ident = "";  // this may be a formalizing identifier choice.
+b_formalizing_ident = "";  // and/or this
+b_to_a_choice = "";        // this may be one of the participant classes, or, if reflexive, one of the role phrases.
+a_to_b_choice = "";        // as may this
+use_a_class = false;       // this will indicate whether identifiers from this class can be selected/displayed.
+use_b_class = false;       // ditto
+formchoices[1] = "";       // declare and size the array - even if not presented for selection.
+formchoices[0] = ""; 
+formalizer_choice = "";    // a possible choice selected from above array.
+showchoice = false;        // presume not display choice of formalizing class
+part_class = "";           // this may be the name of a participant class chosen for simple formalization.
+select any aoid from instances of O_ID where false;  // decl
+select any boid from instances of O_ID where false;  // decl
+
+/*
+Is this an associative relationship? - some functional changes here: 
+ - see issue #11699 comment history on why associative re-assignment is disabled for now (graphics update fails).
+A simple binary association may migrate to associative (linked) if an available class is selected to fulfill that role.
+An associative (linked) can migrate to simple binary by unchecking - if not formalized.
+Change of associative class is disallowed, pending graphics fix. - but, for safety, do not allow change if formalized.
+*/
+num_candidates = 1;  // decl - but see decrement for array sizing - zero-based vs. count
+valid_candidates = true;  // tentatively
 default_selection = 0;
-num_options = cardinality associative_classes;
-associative_class_options[num_options] = "";
-if (0 < num_options)
-  associative_class_options[num_options-1] = "";
-  i = num_options - 1;
-  for each associative_class in associative_classes
-    associative_class_options[i] = associative_class.Name;
+assoc_class_name = "";
+has_associative = false;
+select many candidate_classes from instances of O_OBJ where false;  // decl
+select one associative_class related by r_rel->R_ASSOC[R206]->R_ASSR[R211]->R_RGO[R205]->R_OIR[R203]->O_OBJ[R201];
+if (not_empty associative_class) 
+  valid_candidates = false;
+  assoc_class_name = associative_class.Name;
+  has_associative = true;
+else
+  if (not is_formalized)
+    select many candidate_classes related by r_rel->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_OBJ[R8001] where (selected.Obj_ID != a_class.Obj_ID and selected.Obj_ID != b_class.Obj_ID);
+    select many candidate_imported_classes related by r_rel->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_IOBJ[R8001]->O_OBJ[R101] where (selected.Obj_ID != a_class.Obj_ID and selected.Obj_ID != b_class.Obj_ID);
+    candidate_classes = candidate_classes + candidate_imported_classes;
+    if (not_empty candidate_classes)
+      num_candidates = cardinality candidate_classes;
+    end if;
+  end if;
+end if;
+i = num_candidates - 1;
+candidate_class_options[i] = "";  // size the zero-based array - even if not to be displayed; it must exist to satisfy getDropdown(..) below
+if (not_empty candidate_classes)
+  for each candidate_class in candidate_classes
+    candidate_class_options[i] = candidate_class.Name;
     i = i - 1;
   end for;
-  // Bubble sort list of associative classes.
+  // Bubble sort list of candidate classes.
   i = 0;
-  while ( i < (num_options-1) )
+  while ( i < (num_candidates-1) )
     j = 0;
-    while ( j < (num_options-i-1) )
-      s1 = associative_class_options[j]; s2 = associative_class_options[j+1];
+    while ( j < (num_candidates-i-1) )
+      s1 = candidate_class_options[j]; 
+      s2 = candidate_class_options[j+1];
       if ( s1 > s2 )
-        s = associative_class_options[j];
-        associative_class_options[j] = associative_class_options[j+1];
-        associative_class_options[j+1] = s;
-      end if;
-      s3 = associative_class_options[j];
-      if not_empty assr
-        if (assr.Name == s3)
-          default_selection = j;
-        else
-          s3 = associative_class_options[j + 1];
-          if (assr.Name == s3)
-            s3 = associative_class_options[j + 1];
-          end if;
-        end if;
+        s = candidate_class_options[j];
+        candidate_class_options[j] = candidate_class_options[j+1];
+        candidate_class_options[j+1] = s;
       end if;
       j = j + 1;
     end while;
     i = i + 1;
   end while;
-end if;
-assoc_class = USER::getDropdown(options:associative_class_options, prompt:"Associative class", default_selection:default_selection, reload_options:false);
-LAYOUT::setLayout(field_name:"assoc_class", row_num:"4", width:"1", height:"1");
-select any associative_class related by r_rel->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_OBJ[R8001] where (selected.Name == assoc_class);
-if (empty associative_class)
-  select any associative_class related by r_rel->PE_PE[R8001]->EP_PKG[R8000]->PE_PE[R8000]->O_IOBJ[R8001]->O_OBJ[R101] where (selected.Name == assoc_class);
-end if;
-USER::dependsOn(field1:"assoc_class", field2:"associative_rel", inverse:false, comparison:"");
-
-// Participating class
-b_to_a_part = "";
-select many a_ident_attrs related by a_class->O_ID[R104]->O_OIDA[R105];
-if (not_empty a_ident_attrs and b_mult == "One")
-  b_to_a_part = a_class.Name;
-  if (a_class.Obj_ID == b_class.Obj_ID)
-    b_to_a_part = b_phrase + " " + b_to_a_part;
+  // now sorted.. see if we have an already chosen associative
+  // Note: the following is clearly redundant given the preceeding choice.
+  // - however, if re-assignment is subsequently fixed, this will be relevant.
+  if (has_associative)
+    i = 0;
+    while ( i < (num_candidates) )
+      s = candidate_class_options[i];
+      if (s == assoc_class_name)
+        default_selection = i;
+        break;
+      end if;
+      i = i + 1;
+    end while;
   end if;
+else
+  valid_candidates = false;  // none available
+  candidate_class_options[0] = assoc_class_name;  // if re-assign gets fixed
 end if;
 
-a_to_b_part = "";
-select many b_ident_attrs related by b_class->O_ID[R104]->O_OIDA[R105];
-if (not_empty b_ident_attrs and a_mult == "One")
-  a_to_b_part = b_class.Name;
-  if (a_class.Obj_ID == b_class.Obj_ID)
-    a_to_b_part = a_phrase + " " + a_to_b_part;
-  end if;
-end if;
-participant[2] = a_to_b_part;
-participant[1] = b_to_a_part;
-if (a_cond == "Unconditionally" and b_cond == "Conditionally")  // prefer the unconditional one
-  participant[2] = b_to_a_part;
-  participant[1] = a_to_b_part;
-end if;
-participant[0] = "Not formalized";
-default_selection = 0;
-if (r_rel.isFormalized() and not_empty a_form)
-  default_selection = 2;
-elif (r_rel.isFormalized() and not_empty b_form)
-  default_selection = 1;
-end if;
-if (PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations"))
-  participant[0] = "";
-  if (default_selection > 0)
-    default_selection = default_selection - 1;
-  end if;
-end if;
-part_class = USER::getDropdown(options:participant, prompt:"Use identifier from", default_selection:default_selection, reload_options:true);
-LAYOUT::setLayout(field_name:"part_class", row_num:"4", width:"1", height:"1");
-USER::dependsOn(field1:"part_class", field2:"associative_rel", inverse:true, comparison:"");
+// display associative check box if either: is associative, to allow uncheck; not associative and there exist candidate associative classes
+show_associative = (has_associative or (valid_candidates and not is_formalized));
+// but, disable this checkbox if formalized; for safety, must un-formalize first.
+is_associative = USER::getCheckbox(default:has_associative, prompt:"Associative", disabled:is_formalized);
+LAYOUT::setLayout(field_name:"is_associative", row_num:"4", width:"1", height:"1");
+USER::dependsOn(field1:"is_associative", field2:"rel_num", inverse:false, comparison:"v_show_associative");
 
-// Identifier in A class
+// only if this an established associative relationship, label and display the associative class; otherwise it may be a dropdown selection
+label_text = "";
+if (not valid_candidates)
+  label_text = "Associative class: " + assoc_class_name;
+else
+  label_text = "Select associative: ";
+end if;
+label_assoc_class = USER::getLabel(label:label_text);
+LAYOUT::setLayout(field_name:"label_assoc_class", row_num:"4", width:"2", height:"1");
+USER::dependsOn(field1:"label_assoc_class", field2:"is_associative", inverse:false, comparison:"");
+
+// if appropriate, offer associative candidates only to simple association; see ''valid_cadidates'' logic above
+// do not offer reassign of associative class to established associative: - see issue #11699
+show_candidates = is_associative and valid_candidates;
+assoc_candidate = USER::getDropdown(options:candidate_class_options, prompt:"", default_selection:default_selection, reload_options:false);
+LAYOUT::setLayout(field_name:"assoc_candidate", row_num:"4", width:"2", height:"1");
+USER::dependsOn(field1:"assoc_candidate", field2:"is_associative", inverse:false, comparison:"v_show_candidates");
+
+for each associative_class in candidate_classes
+  if (associative_class.Name == assoc_candidate)
+    break;
+  end if;
+end for;
+
 select many a_idents related by a_class->O_ID[R104]->O_OIDA[R105]->O_ID[R105];
-a_ident_default_selection = 0;
+select many b_idents related by b_class->O_ID[R104]->O_OIDA[R105]->O_ID[R105];
+
+/*
+Establish whether formalization is possible:
+At a minimum, one participating class must have an identifier defined.
+If both ''ends'' of the association are ''Many'' (M:M} an associative class must be present.
+(b_mult should not be referenced for check in symmetric case - has not been presented on dialog).
+An associative class requires identifiers in both particpant classes for formalization.
+*/
+can_formalize = true;
+if (not is_formalized)
+  if (empty a_idents and empty b_idents)
+    can_formalize = false;
+  else
+    if (not is_associative)
+      if (a_mult == "Many")
+        if (is_symmetric)
+          can_formalize = false;
+        else
+          if (b_mult == "Many")
+            can_formalize = false;
+          end if;
+        end if;
+      end if;
+    else
+      if (empty a_idents or empty b_idents)
+        can_formalize = false;
+      end if;
+    end if;
+  end if;
+end if;
+
+// If appropriate, present formalize check box - either is formalized, or can/must be formalized
+checkformal = (is_formalized or (formalize_required and can_formalize));
+formalize = USER::getCheckbox(default:checkformal, prompt:"Formalize ", disabled:formalize_required);
+LAYOUT::setLayout(field_name:"formalize", row_num:"5", width:"1", height:"1");
+USER::dependsOn(field1:"formalize", field2:"rel_num", inverse:false, comparison:"v_can_formalize");
+
+/*
+Prepare to establish possible identifiers for formalization choice.
+These option arrays are referenced by USER EE and must be initialized, even if not presented
+*/
 num_options = cardinality a_idents;
 if (num_options < 1)
   num_options = 1;
 end if;
 a_ident_options[num_options-1] = "";
+if (not is_reflexive)
+  num_options = cardinality b_idents;
+  if (num_options < 1)
+    num_options = 1;
+  end if;
+end if;
+b_ident_options[num_options-1] = "";
+
+/*
+Either or both participants may have multiple identifiers from which to choose:
+Prepare id choices for selection; arrays must be initialized even if not presented
+*/
 i = 0;
 for each a_ident in a_idents
   a_ident_options[i] = a_ident.get_name();
-  select any formalizing_id related by r_rel->R_OIR[R201]->R_RTO[R203]->O_ID[R109] where (selected.Obj_ID == a_ident.Obj_ID and selected.Oid_ID == a_ident.Oid_ID);
-  if (not_empty formalizing_id)
-    a_ident_default_selection = i;
-  end if;
   i = i + 1;
 end for;
-a_ident1 = USER::getDropdown(options:a_ident_options, prompt:"Identifier", default_selection:a_ident_default_selection, reload_options:false);
-LAYOUT::setLayout(field_name:"a_ident1", row_num:"5", width:"1", height:"1");
-USER::dependsOn(field1:"a_ident1", field2:"associative_rel", inverse:true, comparison:"");
-USER::dependsOn(field1:"a_ident1", field2:"part_class", inverse:false, comparison:"v_b_to_a_part.equals(v_part_class)");
-
-// Identifier in B class
-select many b_idents related by b_class->O_ID[R104]->O_OIDA[R105]->O_ID[R105];
-b_ident_default_selection = 0;
-num_options = cardinality b_idents;
-if (num_options < 1)
-  num_options = 1;
-end if;
-b_ident_options[num_options-1] = "";
 i = 0;
 for each b_ident in b_idents
   b_ident_options[i] = b_ident.get_name();
-  select any formalizing_id related by r_rel->R_OIR[R201]->R_RTO[R203]->O_ID[R109] where (selected.Obj_ID == b_ident.Obj_ID and selected.Oid_ID == b_ident.Oid_ID);
-  if (not_empty formalizing_id)
-    b_ident_default_selection = i;
-  end if;
   i = i + 1;
 end for;
-b_ident1 = USER::getDropdown(options:b_ident_options, prompt:"Identifier", default_selection:b_ident_default_selection, reload_options:false);
-LAYOUT::setLayout(field_name:"b_ident1", row_num:"5", width:"1", height:"1");
-USER::dependsOn(field1:"b_ident1", field2:"associative_rel", inverse:true, comparison:"");
-USER::dependsOn(field1:"b_ident1", field2:"part_class", inverse:false, comparison:"v_a_to_b_part.equals(v_part_class)");
 
-// Formalize associative
-assoc_formal = r_rel.isFormalized() or PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations");
-formalize_assoc = USER::getCheckbox(default:assoc_formal, prompt:"Formalized", disabled:PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations"));
-LAYOUT::setLayout(field_name:"formalize_assoc", row_num:"6", width:"1", height:"1");
-USER::dependsOn(field1:"formalize_assoc", field2:"associative_rel", inverse:false, comparison:"");
+/*
+If the association is already formalized, no choices are presented.
+Instead, the details of formalization - class/phrase, identifier - are displayed.
+*/
+if (is_formalized)  // establish the formalizing id(s) for display
+  if (not is_associative)  
+    // simple binary: one of the following must match:
+    if (not_empty a_part)
+      select one aoid related by a_part->R_RTO[R204]->O_ID[R109];
+      a_formalizing_ident = aoid.get_name();
+    else
+      select one boid related by b_part->R_RTO[R204]->O_ID[R109];
+      b_formalizing_ident = boid.get_name();
+    end if;       
+  else
+    // two ids - which may be the same for reflexive associative
+    select one aoid related by a_aone->R_RTO[R204]->O_ID[R109];
+    a_formalizing_ident = aoid.get_name();
+    select one boid related by b_aoth->R_RTO[R204]->O_ID[R109];
+    b_formalizing_ident = boid.get_name();
+  end if;
+end if;
 
+// If appropriate, prepare possible formalizing participant class/phrase choices.
+// If associative, no choice presented: both particpants are involved.
+// If not associative at least one side must be multiplicity ''One''.
+if (can_formalize)
+  if (is_reflexive)  // use both (mandatory) role phrases rather than class names...
+    if (not is_symmetric)  // ...unless symmetric: no choices displayed - irrelevant
+      b_to_a_choice = b_phrase;
+      a_to_b_choice = a_phrase;
+    end if;
+  else
+    if (not is_associative)
+      if (not_empty a_idents and b_mult == "One")
+        b_to_a_choice = a_class.Name;
+      end if;
+      if (not_empty b_idents and a_mult == "One")
+        a_to_b_choice = b_class.Name;
+      end if;
+    end if;
+  end if;
+end if;
+
+/*
+Prepare a label which may either be a prompt for choice, or may display existing formalization data.
+For non-associative formalization choices either or both classes may present identifier choices.
+if appropriate, present choice of participant (or reflexive phrase) for which to choose identifier.
+Determine whether formalization choice/data of either or both participants will be presented.
+*/
+label_text = "";
+if (formalize)
+  label_text = "id of class: ";
+  if (is_reflexive and not is_symmetric)
+    label_text = "phrase: ";
+  end if;
+  if (is_formalized)
+    // if not associative, one of these must match; if associative, neither
+    if (a_formalizing_ident != "")
+      formalizer_choice = b_to_a_choice;
+      use_a_class = true;
+    end if;
+    if (b_formalizing_ident != "")
+      formalizer_choice = a_to_b_choice;
+      use_b_class = true;
+    end if;
+    label_text = "using " + label_text + formalizer_choice;
+  else
+    if (is_associative)
+      // associative: formalization must use identifiers from both participant classes - do not present label or choice.
+      use_a_class = true;
+      use_b_class = true;
+    else
+      if (not is_symmetric) // no class/phrase displayed for symmetric; only choice of identifier is relevant
+        showchoice = true;  // display possible class/phrase choice for formalization of non-associative
+        label_text = "use " + label_text;
+      end if;
+    end if;
+  end if;
+
+  // Prepare for menu selection
+  // Attempt to pick the better formalization choice.
+  formchoices[1] = a_to_b_choice;
+  formchoices[0] = b_to_a_choice;
+  if (a_cond == "Unconditionally" and b_cond == "Conditionally")  // prefer the unconditional one
+    formchoices[1] = b_to_a_choice;
+    formchoices[0] = a_to_b_choice;
+  end if;
+end if;
+
+/*
+If appropriate (non-associative), display, or present for selection, the formalizing class/phrase.
+Label text is either a prompt or a rendering of the chosen class/phrase.
+(Suppress label for reflexive: no class choice; phrase incorporated in label below.)
+*/
+showlabel = formalize and not is_associative and not is_reflexive;
+choice_label = USER::getLabel(label:label_text);
+LAYOUT::setLayout(field_name:"choice_label", row_num:"5", width:"2", height:"1");
+USER::dependsOn(field1:"choice_label", field2:"formalize", inverse:false, comparison:"v_showlabel");
+
+// Display possible class/phrase choice(s) for non-associative, which can be formalized, but is not, when ''formalize'' is selected
+choice = USER::getDropdown(options:formchoices, prompt:"", default_selection:0, reload_options:true);
+LAYOUT::setLayout(field_name:"choice", row_num:"5", width:"2", height:"1");
+USER::dependsOn(field1:"choice", field2:"formalize", inverse:false, comparison:"v_showchoice");
+
+// careful! - neither selected if the dropdown was not presented.
+// if non-symmetric reflexive, the choice is a phrase, not a class name!..
+// ...prepend the choice of phrase to the class (this is way it was done earlier)
+phrs = "";
+if (showchoice)
+  if (choice == b_to_a_choice)
+    use_a_class = true;
+    part_class = a_class.Name;
+  else
+    use_b_class = true;
+    part_class = b_class.Name;
+  end if;
+  if (is_reflexive)
+    part_class = choice + " " + part_class; // edit uses this convention to pass the phrase.
+  end if;
+else
+  if (is_symmetric and formalize) 
+    // if formalized, b_formalizing_ident will be non-null for display.
+    // if not, as a and b classses are the same, use b_class for id choice.  
+    use_b_class = true;
+    part_class = b_class.Name;
+  end if;
+end if;
+
+/*
+Display, or present for selection, the identifier fields as appropriate
+One/other or both particpants, determined earlier as ''use_a_class'', ''use_b_class''.
+If formalized, do not present id menu; augment the label field(s) to show selected identifier;
+Retrieve any prefixing or rename data for display in formalized case.
+*/
 // Identifier in A class
-a_ident2 = USER::getDropdown(options:a_ident_options, prompt:a_class.Name + " identifier", default_selection:a_ident_default_selection, reload_options:false);
-LAYOUT::setLayout(field_name:"a_ident2", row_num:"6", width:"1", height:"1");
-USER::dependsOn(field1:"a_ident2", field2:"associative_rel", inverse:false, comparison:"");
-USER::dependsOn(field1:"a_ident2", field2:"formalize_assoc", inverse:false, comparison:"");
+label_text1 = "id:";
+label_text2 = "";
+if (not is_reflexive)  // display class name
+  label_text1 = a_class.Name + "  " + label_text1;
+else
+  if (not is_symmetric)  // show phrase
+    label_text2 = " for  " + Util::getTic() + b_to_a_choice + Util::getTic();
+  end if;
+end if;
+if (a_formalizing_ident != "")  // if formalized, just display the chosen id with any prefix/rename
+  label_text1 = label_text1 + "  " + a_formalizing_ident;
+  select many orefs related by aoid->O_OIDA[R105]->O_RTIDA[R110]->O_REF[R111]
+   where (selected.Rel_ID == r_rel.Rel_ID);
+  for each oref in orefs
+    phrs = oref.get_referential_phrase();
+    if (phrs == b_phrase)
+      select one rattr related by oref->O_RATTR[R108];
+      select one attr related by rattr->O_ATTR[R106];
+      if (attr.Pfx_Mode != 0)
+        label_text2 = label_text2 + "   prefixed: " + rattr.get_prefix_string();
+      else
+        if (rattr.Ref_Mode == 0)
+          label_text2 = label_text2 + "   renamed: " + attr.Name;
+        end if;
+      end if;
+      break;
+    end if;
+  end for;
+end if;
+a_id_label = USER::getLabel(label:label_text1);
+LAYOUT::setLayout(field_name:"a_id_label", row_num:"6", width:"1", height:"1");
+USER::dependsOn(field1:"a_id_label", field2:"formalize", inverse:false, comparison:"v_use_a_class");
+
+a_id_choice = USER::getDropdown(options:a_ident_options, prompt:"", default_selection:0, reload_options:true);
+LAYOUT::setLayout(field_name:"a_id_choice", row_num:"6", width:"1", height:"1");
+USER::dependsOn(field1:"a_id_choice", field2:"formalize", inverse:false, comparison:"v_use_a_class");
+USER::dependsOn(field1:"a_id_choice", field2:"formalize", inverse:true, comparison:"v_is_formalized");
+
+a_id_label2 = USER::getLabel(label:label_text2);
+LAYOUT::setLayout(field_name:"a_id_label2", row_num:"6", width:"2", height:"1");
+USER::dependsOn(field1:"a_id_label2", field2:"formalize", inverse:false, comparison:"v_use_a_class");
+
+// Prepare options for prefixing/renaming referentials in a_class
+a_pfxorname[2] = "";
+a_pfxorname[0] = "Prefix";
+a_pfxorname[1] = "";
+select many oids related by a_class->O_ID[R104.''is identified by''];
+for each oid in oids
+  idname = oid.get_name();;
+  if (idname == a_id_choice)
+    select many attrs related by oid->O_ATTR[R105];
+    if (cardinality attrs == 1)  // only allow rename if identifier is single-valued
+      a_pfxorname[2] = "Rename";
+    end if;
+    select any attr related by oid->O_ATTR[R105]
+     where (selected.Pfx_Mode != 0);
+    if (not_empty attr)
+      a_pfxorname[1] = "ReferredToPrfx";
+    end if;
+    break;
+  end if;
+end for; 
+
+// If formalizing, offer to prefix/rename referential(s)
+a_edt_choice = USER::getDropdown(options:a_pfxorname, prompt:"", default_selection:0, reload_options:true);
+LAYOUT::setLayout(field_name:"a_edt_choice", row_num:"6", width:"1", height:"1");
+USER::dependsOn(field1:"a_edt_choice", field2:"formalize", inverse:false, comparison:"v_use_a_class");
+USER::dependsOn(field1:"a_edt_choice", field2:"formalize", inverse:true, comparison:"v_is_formalized");
+
+a_edt_txt = USER::getText(default:"", prompt:"", require_value:false, validate_name:false);
+LAYOUT::setLayout(field_name:"a_edt_txt", row_num:"6", width:"1", height:"1");
+USER::dependsOn(field1:"a_edt_txt", field2:"formalize", inverse:false, comparison:"v_use_a_class");
+USER::dependsOn(field1:"a_edt_txt", field2:"formalize", inverse:true, comparison:"v_is_formalized");
 
 // Identifier in B class
-b_ident2 = USER::getDropdown(options:b_ident_options, prompt:b_class.Name + " identifier", default_selection:b_ident_default_selection, reload_options:false);
-LAYOUT::setLayout(field_name:"b_ident2", row_num:"6", width:"1", height:"1");
-USER::dependsOn(field1:"b_ident2", field2:"associative_rel", inverse:false, comparison:"");
-USER::dependsOn(field1:"b_ident2", field2:"formalize_assoc", inverse:false, comparison:"");
-
-// Edit the association
-select one ep_pkg related by a_class->PE_PE[R8001]->EP_PKG[R8000];
-
-
-if (associative_rel)
-  r_rel.editAssociation(rel_num:rel_num,
-                              a_cond:a_cond,
-                              a_phrase:a_phrase,
-                              a_mult:a_mult,
-                              b_cond:b_cond,
-                              b_phrase:b_phrase,
-                              b_mult:b_mult,
-                              part_class:part_class,
-                              migrate_to_assoc: associative_rel,
-                              a_ident:a_ident2,
-                              b_ident:b_ident2,
-                              a_oir:a_oir,
-                              b_oir:b_oir,
-                              assoc_class:associative_class,
-                              assoc_formalized:formalize_assoc);
+label_text1 = "id:";
+label_text2 = "";
+if (not is_reflexive)  // display class name
+  label_text1 = b_class.Name + "  " + label_text1;
 else
-  r_rel.editAssociation(rel_num:rel_num,
-                              a_cond:a_cond,
-                              a_phrase:a_phrase,
-                              a_mult:a_mult,
-                              b_cond:b_cond,
-                              b_phrase:b_phrase,
-                              b_mult:b_mult,
-                              part_class:part_class,
-                              migrate_to_assoc: associative_rel,
-                              a_ident:a_ident1,
-                              b_ident:b_ident1,
-                              a_oir:a_oir,
-                              b_oir:b_oir,
-                              assoc_class:associative_class,
-                              assoc_formalized:formalize_assoc);
-end if;',
+  if (not is_symmetric)  // show phrase
+    label_text2 = " for  " + Util::getTic() + a_to_b_choice + Util::getTic();
+  end if;
+end if;
+if (b_formalizing_ident != "")  // if formalized, just display the chosen id with any prefix/rename
+  label_text1 = label_text1 + "  " + b_formalizing_ident;
+  select many orefs related by boid->O_OIDA[R105]->O_RTIDA[R110]->O_REF[R111]
+   where (selected.Rel_ID == r_rel.Rel_ID);
+  for each oref in orefs
+    phrs = oref.get_referential_phrase();
+    if (phrs == a_phrase)
+      select one rattr related by oref->O_RATTR[R108];
+      select one attr related by rattr->O_ATTR[R106];
+      if (attr.Pfx_Mode != 0)
+        label_text2 = label_text2 + "   prefixed: " + rattr.get_prefix_string();
+      else
+        if (rattr.Ref_Mode == 0)
+          label_text2 = label_text2 + "   renamed: " + attr.Name;
+        end if;
+      end if;
+      break;
+    end if;
+  end for;
+end if;
+b_id_label = USER::getLabel(label:label_text1);
+LAYOUT::setLayout(field_name:"b_id_label", row_num:"7", width:"1", height:"1");
+USER::dependsOn(field1:"b_id_label", field2:"formalize", inverse:false, comparison:"v_use_b_class");
+
+b_id_choice = USER::getDropdown(options:b_ident_options, prompt:"", default_selection:0, reload_options:true);
+LAYOUT::setLayout(field_name:"b_id_choice", row_num:"7", width:"1", height:"1");
+USER::dependsOn(field1:"b_id_choice", field2:"formalize", inverse:false, comparison:"v_use_b_class");
+USER::dependsOn(field1:"b_id_choice", field2:"formalize", inverse:true, comparison:"v_is_formalized");
+
+b_id_label2 = USER::getLabel(label:label_text2);
+LAYOUT::setLayout(field_name:"b_id_label2", row_num:"7", width:"2", height:"1");
+USER::dependsOn(field1:"b_id_label2", field2:"formalize", inverse:false, comparison:"v_use_b_class");
+
+// Prepare options for prefixing/renaming referentials in b_class
+// Note that these b_options may differ from a_options
+b_pfxorname[2] = "";
+b_pfxorname[0] = "Prefix";
+b_pfxorname[1] = "";
+select many oids related by b_class->O_ID[R104.''is identified by''];
+for each oid in oids
+  idname = oid.get_name();
+  if (idname == b_id_choice)
+    select many attrs related by oid->O_ATTR[R105];
+    if (cardinality attrs == 1)  // only allow rename if identifier is single-valued
+      b_pfxorname[2] = "Rename";
+    end if;
+    select any attr related by oid->O_ATTR[R105]
+     where (selected.Pfx_Mode != 0);
+    if (not_empty attr)
+      b_pfxorname[1] = "ReferredToPrfx";
+    end if;
+    break;
+  end if;
+end for; 
+
+// If formalizing, offer to prefix/rename referential(s)
+b_edt_choice = USER::getDropdown(options:b_pfxorname, prompt:"", default_selection:0, reload_options:true);
+LAYOUT::setLayout(field_name:"b_edt_choice", row_num:"7", width:"1", height:"1");
+USER::dependsOn(field1:"b_edt_choice", field2:"formalize", inverse:false, comparison:"v_use_b_class");
+USER::dependsOn(field1:"b_edt_choice", field2:"formalize", inverse:true, comparison:"v_is_formalized");
+
+b_edt_txt = USER::getText(default:"", prompt:"", require_value:false, validate_name:false);
+LAYOUT::setLayout(field_name:"b_edt_txt", row_num:"7", width:"1", height:"1");
+USER::dependsOn(field1:"b_edt_txt", field2:"formalize", inverse:false, comparison:"v_use_b_class");
+USER::dependsOn(field1:"b_edt_txt", field2:"formalize", inverse:true, comparison:"v_is_formalized");
+
+// Prepare prefix/rename parameter data.
+a_edt_mode = 0;  // decl, default
+i = 0;
+while (i < 3)
+  tval = a_pfxorname[i];  // MC_java needs this...
+  i = i + 1;                // increment for edt_mode
+  if (a_edt_choice == tval)
+    a_edt_mode = i;
+    break;
+  end if;
+end while;
+
+b_edt_mode = 0;  // decl, default
+i = 0;
+while (i < 3)
+  tval = b_pfxorname[i];
+  i = i + 1;
+  if (b_edt_choice == tval)
+    b_edt_mode = i;
+    break;
+  end if;
+end while;
+
+// avoid passing meaningless data to edit (do this here to bypass wizardry)
+if (not formalize)
+  part_class = "";
+end if;
+
+// Edit the association - implement the dialog choices in the association structure
+
+r_rel.editAssociation(rel_num:rel_num,
+                      a_cond:a_cond,
+                      a_phrase:a_phrase,
+                      a_mult:a_mult,
+                      b_cond:b_cond,
+                      b_phrase:b_phrase,
+                      b_mult:b_mult,
+                      part_class:part_class,
+                      is_associative: is_associative,
+                      a_ident:a_id_choice,
+                      a_edt_txt:a_edt_txt,
+                      a_edt_mode:a_edt_mode,
+                      b_ident:b_id_choice,
+                      b_edt_txt:b_edt_txt,
+                      b_edt_mode:b_edt_mode,
+                      a_oir:a_oir,
+                      b_oir:b_oir,
+                      assoc_class:associative_class,
+                      formalize:formalize,
+                      symmetric:is_symmetric);
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -8637,28 +8779,68 @@ Import: org.xtuml.bp.core.common.NonRootModelElement
 	'select any r_rel from instances of R_REL where USER::selectOne(id:selected.Rel_ID);
 
 select one sup_class related by r_rel->R_SUBSUP[R206]->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201];
+formalize_required = PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations");
+
+// establish whether formalization is possible
+can_formalize = true;
+select many idents related by sup_class->O_ID[R104]->O_OIDA[R105]->O_ID[R105];
+if (empty idents)
+  can_formalize = false;
+end if;
+
+ident_default_selection = 0;
+num_options = cardinality idents;
+if (num_options < 1)
+  num_options = 1;
+end if;
+ident_options[num_options-1] = "";  // establish array size
+i = 0;
+for each ident in idents
+  ident_options[i] = ident.get_name();
+  select any formalizing_id related by r_rel->R_OIR[R201]->R_RTO[R203]->O_ID[R109] where (selected.Obj_ID == sup_class.Obj_ID and selected.Oid_ID == ident.Oid_ID);
+  if (not_empty formalizing_id)
+    ident_default_selection = i;
+  end if;
+  i = i + 1;
+end for;
 
 // Association number
 default_rel_num = GD::int_to_string(value:r_rel.Numb);
 rel_num = USER::getText(default:default_rel_num, prompt:"Association Number", require_value:true, validate_name:false);
 LAYOUT::setLayout(field_name:"rel_num", row_num:"1", width:"1", height:"1");
+formalized = r_rel.isFormalized();
 
-// Formalize associative
-assoc_formal = r_rel.isFormalized() or PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations");
-formalize_assoc = USER::getCheckbox(default:assoc_formal, prompt:"Formalized", disabled:PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations"));
-LAYOUT::setLayout(field_name:"formalize_assoc", row_num:"2", width:"1", height:"1");
+// If appropriate, present Formalized check box - either ''is formalized,'' or could be formalized
+checkformal = ((formalized or formalize_required) and can_formalize);
+formalize = USER::getCheckbox(default:checkformal, prompt:"Formalized", disabled:formalize_required);
+LAYOUT::setLayout(field_name:"formalize", row_num:"2", width:"1", height:"1");
+USER::dependsOn(field1:"formalize", field2:"rel_num", inverse:false, comparison:"v_can_formalize");
 
-// Identifier
-ident_label = USER::getLabel(label:sup_class.Name + " identifier");
-LAYOUT::setLayout(field_name:"ident_label", row_num:"2", width:"1", height:"1");
-USER::dependsOn(field1:"ident_label", field2:"formalize_assoc", inverse:false, comparison:"");
-select any ident related by sup_class->O_ID[R104] where USER::selectOne(id:selected.Obj_ID) and O_ID::hasAttributes(obj_id:selected.Obj_ID, oid_id: selected.Oid_ID);
-LAYOUT::setLayout(field_name:"ident", row_num:"2", width:"1", height:"1");
-USER::dependsOn(field1:"ident", field2:"formalize_assoc", inverse:false, comparison:"");
+// if can formalize or is formalized, display/choose an identifier from the supertype
+formalizer = " identifier: ";
+if (formalized)  // display formalizing identifier
+  id = ident_options[ident_default_selection];
+  formalizer = formalizer + id;
+end if;
+ident_label = USER::getLabel(label:sup_class.Name + formalizer);
+LAYOUT::setLayout(field_name:"ident_label", row_num:"2", width:"2", height:"1");
+USER::dependsOn(field1:"ident_label", field2:"formalize", inverse:false, comparison:"");
 
-// Edit the association
-select one ep_pkg related by sup_class->PE_PE[R8001]->EP_PKG[R8000];
-r_rel.editSubsupAssociation(rel_num:rel_num, formalized:formalize_assoc, ident:ident);',
+showchoice = formalize and not formalized;  // do not allow choice if formalized
+id_choice = USER::getDropdown(options:ident_options, prompt:"", default_selection:ident_default_selection, reload_options:false);
+LAYOUT::setLayout(field_name:"id_choice", row_num:"2", width:"1", height:"1");
+USER::dependsOn(field1:"id_choice", field2:"formalize", inverse:false, comparison:"v_showchoice");
+
+// selection returns identifier label; association edit wants an oid:
+for each ident in idents
+  if (ident.get_name() == id_choice)
+    break;
+  end if;
+end for;
+
+// Edit the association - supply the values from this dialog
+r_rel.editSubsupAssociation(rel_num:rel_num, formalized:formalize, ident:ident);
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',
@@ -8681,28 +8863,68 @@ Import: org.xtuml.bp.core.common.NonRootModelElement
 
 select one r_rel related by r_sub->R_SUBSUP[R213]->R_REL[R206];
 select one sup_class related by r_rel->R_SUBSUP[R206]->R_SUPER[R212]->R_RTO[R204]->R_OIR[R203]->O_OBJ[R201];
+formalize_required = PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations");
+
+// establish whether formalization is possible
+can_formalize = true;
+select many idents related by sup_class->O_ID[R104]->O_OIDA[R105]->O_ID[R105];
+if (empty idents)
+  can_formalize = false;
+end if;
+
+ident_default_selection = 0;
+num_options = cardinality idents;
+if (num_options < 1)
+  num_options = 1;
+end if;
+ident_options[num_options-1] = "";  // establish array size
+i = 0;
+for each ident in idents
+  ident_options[i] = ident.get_name();
+  select any formalizing_id related by r_rel->R_OIR[R201]->R_RTO[R203]->O_ID[R109] where (selected.Obj_ID == sup_class.Obj_ID and selected.Oid_ID == ident.Oid_ID);
+  if (not_empty formalizing_id)
+    ident_default_selection = i;
+  end if;
+  i = i + 1;
+end for;
 
 // Association number
 default_rel_num = GD::int_to_string(value:r_rel.Numb);
 rel_num = USER::getText(default:default_rel_num, prompt:"Association Number", require_value:true, validate_name:false);
 LAYOUT::setLayout(field_name:"rel_num", row_num:"1", width:"1", height:"1");
+formalized = r_rel.isFormalized();
 
-// Formalize associative
-assoc_formal = r_rel.isFormalized() or PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations");
-formalize_assoc = USER::getCheckbox(default:assoc_formal, prompt:"Formalized", disabled:PREF::getBoolean(name:"bridgepoint_prefs_require_formalized_associations"));
-LAYOUT::setLayout(field_name:"formalize_assoc", row_num:"2", width:"1", height:"1");
+// If appropriate, present Formalized check box - either ''is formalized,'' or could be formalized
+checkformal = ((formalized or formalize_required) and can_formalize);
+formalize = USER::getCheckbox(default:checkformal, prompt:"Formalized", disabled:formalize_required);
+LAYOUT::setLayout(field_name:"formalize", row_num:"2", width:"1", height:"1");
+USER::dependsOn(field1:"formalize", field2:"rel_num", inverse:false, comparison:"v_can_formalize");
 
-// Identifier
-ident_label = USER::getLabel(label:sup_class.Name + " identifier");
-LAYOUT::setLayout(field_name:"ident_label", row_num:"2", width:"1", height:"1");
-USER::dependsOn(field1:"ident_label", field2:"formalize_assoc", inverse:false, comparison:"");
-select any ident related by sup_class->O_ID[R104] where USER::selectOne(id:selected.Obj_ID) and O_ID::hasAttributes(obj_id:selected.Obj_ID, oid_id: selected.Oid_ID);
-LAYOUT::setLayout(field_name:"ident", row_num:"2", width:"1", height:"1");
-USER::dependsOn(field1:"ident", field2:"formalize_assoc", inverse:false, comparison:"");
+// if can formalize or is formalized, display/choose an identifier from the supertype
+formalizer = " identifier: ";
+if (formalized)  // display formalizing identifier
+  id = ident_options[ident_default_selection];
+  formalizer = formalizer + id;
+end if;
+ident_label = USER::getLabel(label:sup_class.Name + formalizer);
+LAYOUT::setLayout(field_name:"ident_label", row_num:"2", width:"2", height:"1");
+USER::dependsOn(field1:"ident_label", field2:"formalize", inverse:false, comparison:"");
 
-// Edit the association
-select one ep_pkg related by sup_class->PE_PE[R8001]->EP_PKG[R8000];
-r_rel.editSubsupAssociation(rel_num:rel_num, formalized:formalize_assoc, ident:ident);',
+showchoice = formalize and not formalized;  // do not allow choice if formalized
+id_choice = USER::getDropdown(options:ident_options, prompt:"", default_selection:ident_default_selection, reload_options:false);
+LAYOUT::setLayout(field_name:"id_choice", row_num:"2", width:"1", height:"1");
+USER::dependsOn(field1:"id_choice", field2:"formalize", inverse:false, comparison:"v_showchoice");
+
+// selection returns identifier label; association edit wants an oid:
+for each ident in idents
+  if (ident.get_name() == id_choice)
+    break;
+  end if;
+end for;
+
+// Edit the association - supply the values from this dialog
+r_rel.editSubsupAssociation(rel_num:rel_num, formalized:formalize, ident:ident);
+',
 	"ba5eda7a-def5-0000-0000-000000000000",
 	1,
 	'',

@@ -1,17 +1,15 @@
 package org.xtuml.bp.ui.canvas.references;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.xtuml.bp.core.ClassStateMachine_c;
 import org.xtuml.bp.core.Component_c;
-import org.xtuml.bp.core.CorePlugin;
 import org.xtuml.bp.core.InstanceStateMachine_c;
 import org.xtuml.bp.core.Package_c;
 import org.xtuml.bp.core.SystemModel_c;
-import org.xtuml.bp.core.common.BridgePointPreferencesStore;
 import org.xtuml.bp.core.common.NonRootModelElement;
 import org.xtuml.bp.core.inspector.IModelClassInspector;
 import org.xtuml.bp.core.inspector.ModelInspector;
@@ -20,7 +18,6 @@ import org.xtuml.bp.ui.canvas.CanvasPlugin;
 import org.xtuml.bp.ui.canvas.Objectreference_c;
 import org.xtuml.bp.ui.canvas.Ooaofgraphics;
 import org.xtuml.bp.ui.canvas.Referencepath_c;
-import org.xtuml.bp.ui.canvas.persistence.PersistenceExtension;
 
 public class ReferencePathManagement {
 
@@ -104,23 +101,6 @@ public class ReferencePathManagement {
 		return null;
 	}
 
-	public static void initializeElement(NonRootModelElement loadedElement) {
-		List<PersistenceExtension> extensions = CanvasPlugin.getDefault().getPersistenceExtensionRegistry()
-				.getExtensions();
-		// only load with first registered extension
-		PersistenceExtension persistenceExtension = extensions.get(0);
-		if (persistenceExtension != null) {
-			// if the element has a diagram, load it
-			if (elementHasDiagramRepresentation(loadedElement)) {
-				String textualSerialization = CorePlugin.getDefault().getPreferenceStore()
-						.getString(BridgePointPreferencesStore.GRAPHICS_TEXTUAL_SERIALIZATION);
-				if(MessageDialogWithToggle.ALWAYS.equals(textualSerialization)) {
-					persistenceExtension.getLoader().load(loadedElement);
-				}
-			}
-		}
-	}
-
 	public static boolean elementHasDiagramRepresentation(NonRootModelElement loadedElement) {
 		if (loadedElement instanceof Package_c || loadedElement instanceof InstanceStateMachine_c
 				|| loadedElement instanceof ClassStateMachine_c || loadedElement instanceof Component_c
@@ -136,5 +116,20 @@ public class ReferencePathManagement {
 
 	public static void removePath(String path) {
 		managed.remove(path);
+	}
+
+	public static void removeAssociated(NonRootModelElement parentElement) {
+		String path = getPath(parentElement);
+		List<String> toRemove = new ArrayList<>();
+		// remove all managed paths that begin with the parent segment
+		managed.forEach((key, value) -> {
+			if(key.startsWith(path)) {
+				toRemove.add(key);
+			}
+		});
+		toRemove.forEach(key -> {
+			Referencepath_c remove = managed.remove(key);
+			remove.Dispose();
+		});
 	}
 }

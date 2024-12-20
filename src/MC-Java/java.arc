@@ -29,6 +29,9 @@
 .assign mc_ss_end = mc_ss_end_check.result
 .invoke mc_root_pkg_name = GET_ENV_VAR("PTC_MCC_ROOT")
 .assign mc_root_pkg = mc_root_pkg_name.result
+.invoke mc_pass_index_check = GET_ENV_VAR("PTC_MCC_PASS_INDEX")
+.assign mc_pass_index = mc_pass_index_check.result
+.select many splits from instances of PACKAGE_IN_SPLIT
 .//
 .include "${mc_archetypes}/do_type.inc"
 .include "${mc_archetypes}/arch_utils.inc"
@@ -36,6 +39,24 @@
 .include "${mc_archetypes}/enums.inc"
 .include "${mc_archetypes}/model_consistency.inc"
 .include "${mc_archetypes}/../org.xtuml.bp.core/arc/generate_RGO_resolution_methods.inc"
+.//
+.//====================================================================
+.//
+.function in_split
+  .param inst_ref pkg
+  .param string pass_index
+  .assign attr_result = false
+  .select any split_pkg from instances of PACKAGE_IN_SPLIT where ((selected.PackageName == pkg.Name) and (selected.PassIndex == pass_index))
+  .if (not_empty split_pkg)
+    .assign attr_result = true
+  .else
+    .select one parent_pkg related by pkg->PE_PE[R8001]->EP_PKG[R8000]
+    .if (not_empty parent_pkg)
+      .invoke parent_in_split = in_split(parent_pkg, pass_index)
+      .assign attr_result = parent_in_split.result
+    .end if
+  .end if
+.end function
 .//
 .//====================================================================
 .//
@@ -538,7 +559,9 @@ p_${an.body}\
 .//
 .//
 .assign translate_enabled = true
-.if (mc_ss_start != "")
+.select any ee_pkg from instances of EP_PKG where (selected.Name == "External Entities")
+.invoke ees_in_split = in_split(ee_pkg, mc_pass_index)
+.if ((mc_ss_start != "") or ((not_empty splits) and (not ees_in_split.result)))
   .assign translate_enabled = false
 .end if
 .//
@@ -632,12 +655,21 @@ ${blck.body}
 .//
 .select many packages from instances of EP_PKG
 .for each pkg in packages
-  .if ((mc_ss_start != "") and (mc_ss_start == "${pkg.Name}"))
-    .assign translate_enabled = true
-  .end if
-  .if ((mc_ss_end != "") and (mc_ss_end == "${pkg.Name}"))
-    .assign translate_enabled = false
-    .break for
+  .invoke pkg_in_split = in_split(pkg, mc_pass_index)
+  .if (not_empty splits)
+    .if (pkg_in_split.result)
+      .assign translate_enabled = true
+    .else
+      .assign translate_enabled = false
+    .end if
+  .else
+    .if ((mc_ss_start != "") and (mc_ss_start == "${pkg.Name}"))
+      .assign translate_enabled = true
+    .end if
+    .if ((mc_ss_end != "") and (mc_ss_end == "${pkg.Name}"))
+      .assign translate_enabled = false
+      .break for
+    .end if
   .end if
   .if ((translate_enabled == true) and ((mc_ss_only == "") or (mc_ss_only == pkg.Name)))
     .if ("${pkg.Descrip:Translate}" == "false")
@@ -751,7 +783,7 @@ ${cfcb.body}\
   }
           .if (package.is_eclipse_plugin)
   static public ${class_name} createProxy(ModelRoot modelRoot,
-${cfca.body}, String p_contentPath, IPath p_localPath)
+${cfca.body}, String p_contentPath, String modelPath, IPath p_localPath)
   {
             .if ( object.AdapterName == "IProject" )
         if (!modelRoot.isCompareRoot()
@@ -774,10 +806,9 @@ ${cfca.body}, String p_contentPath, IPath p_localPath)
             .select many id_attrs related by id->O_OIDA[R105]->O_ATTR[R105]
             .invoke local_key_result = get_unique_instance_key(id_attrs,"p_");
             .if(local_key_result.found_key)
-          Object[] key = ${local_key_result.key};
+      Object[] key = ${local_key_result.key};
           new_inst = (${class_name}) instances.get(key) ;
             .end if
-        }
     String contentPath = PersistenceUtil.resolveRelativePath(
             p_localPath,
             new Path(p_contentPath));
@@ -795,6 +826,24 @@ ${cfca.body}, String p_contentPath, IPath p_localPath)
 ${cfcb.body}\
         }
     }
+    if ( new_inst == null && modelPath != null ) {
+        // try to look the instance up by model path
+        new_inst = $cr{object.Name}Instance(modelRoot, selected -> {
+          try {
+            return ((NonRootModelElement) selected).getPath().equals(modelPath);
+          } catch (NullPointerException e) {
+            // 'getPath' may throw an NPE if the model data is not consistent
+            return false;
+          }
+        });
+            .invoke foreign_key_result = get_unique_instance_key(id_attrs,"new_inst.");
+            .if(foreign_key_result.found_key)
+        if (new_inst != null) {
+            Object[] targetKey = ${foreign_key_result.key};
+            instances.addAlias(targetKey, key);
+        }
+            .end if
+    }
     if ( new_inst == null ) {
         // there is no instance matching the id, create a proxy
         // if the resource doesn't exist then this will be a dangling reference
@@ -803,16 +852,18 @@ ${cfcb.body}\
 ${cfca_nt.body}
 );
         new_inst.m_contentPath = contentPath;
+        new_inst.m_modelPath = modelPath;
             .if ( object.AdapterName == "IFile" )
     new_inst.setComponent(null);
             .end if
+    }
     }
     return new_inst;
   }
 
   static public ${class_name} resolveInstance(ModelRoot modelRoot,
 ${cfca.body}\
-){
+, String modelPath){
             .if ( object.AdapterName == "IProject" )
       if(!modelRoot.isCompareRoot()) {
         modelRoot=((ModelRoot) Ooaofooa.getDefaultInstance());
@@ -826,7 +877,7 @@ ${cfca.body}\
               .assign cached = "CachedValue"
             .end if
     InstanceList instances = modelRoot.getInstanceList(${class_name}.class);
-    ${class_name} source = null;
+    ${class_name} new_inst = null;
     synchronized(instances) {
         Object [] key = {
             .for each id_attr in id_attrs
@@ -846,19 +897,37 @@ ${cfca.body}\
               .end if
             .end for
             };
-        source = (${class_name}) instances.get(key);
-        if (source != null && !modelRoot.isCompareRoot()) {
-           source.convertFromProxy();
-           source.batchUnrelate();
-            .invoke cfcb_source = create_full_constructor_body(attributes, false, "source.")
-${cfcb_source.body}\
-           return source ;
+        new_inst = (${class_name}) instances.get(key);
+        if (new_inst == null && modelPath != null) {
+          // try to look the instance up by model path
+          new_inst = $cr{object.Name}Instance(modelRoot, selected -> {
+            try {
+              return ((NonRootModelElement) selected).getPath().equals(modelPath);
+            } catch (NullPointerException e) {
+              // 'getPath' may throw an NPE if the model data is not consistent
+              return false;
+            }
+          });
+            .invoke foreign_key_result = get_unique_instance_key(id_attrs,"new_inst.");
+            .if(foreign_key_result.found_key)
+        if (new_inst != null) {
+            Object[] targetKey = ${foreign_key_result.key};
+            instances.addAlias(targetKey, key);
         }
-      }
+            .end if
+        }
+        if (new_inst != null && !modelRoot.isCompareRoot()) {
+           new_inst.convertFromProxy();
+           new_inst.batchUnrelate();
+            .invoke cfcb_source = create_full_constructor_body(attributes, false, "new_inst.")
+${cfcb_source.body}\
+        } else {
       // there is no instance matching the id
-    ${class_name} new_inst = new ${class_name}(modelRoot,
+    new_inst = new ${class_name}(modelRoot,
 ${cfca_nt.body}
 );
+}
+      }
     return new_inst;
   }
           .end if   .//         .if (package.is_eclipse_plugin)
@@ -1204,31 +1273,9 @@ ${gen_RGO_resolution.body}\
             if (${rel_inst_var_name} == null) {
                 ${rel_inst_var_name} = (${rcn.body}) Ooaofooa.getDefaultInstance().getInstanceList(${rcn.body}.class).get(new Object[] ${guk.key});
             }
-            // if we did not find the element, load all possible PMCs containing expected RTO type
-            // then search again by id
-            .// For now this is a workaround special case, the case is for Base Attribute
-            .// where there is a circular dependency between itself and a Referential Attribute
-            .if(object.Key_Lett != "O_BATTR")
-            Object[] ${rel_inst_var_name}_uk = new Object[] ${guk.key};
-            if(${rel_inst_var_name}_uk[0] instanceof UUID && ((UUID) ${rel_inst_var_name}_uk[0]).getLeastSignificantBits() != 0) {
-				if((${rel_inst_var_name} == null  || ${rel_inst_var_name}.isProxy()) && !baseRoot.isCompareRoot() && !isProxy() && !((UUID) ${rel_inst_var_name}_uk[0]).equals(Gd_c.Null_unique_id())) {
-					// load all potential PMCs that may contain our target 
-					PersistenceManager.ensureAllInstancesLoaded(null,
-							Package_c.class, getPersistableComponent());
-					PersistenceManager.ensureAllInstancesLoaded(null,
-							Component_c.class, getPersistableComponent());
-					PersistenceManager.ensureAllInstancesLoaded(null,
-							ModelClass_c.class, getPersistableComponent());
-					PersistenceManager.ensureAllInstancesLoaded(null,
-							InstanceStateMachine_c.class, getPersistableComponent());
-					PersistenceManager.ensureAllInstancesLoaded(null,
-							ClassStateMachine_c.class, getPersistableComponent());
-				}
-			}
-			.end if
                 .assign search_all_model_roots = package.search_all_model_roots
                 .if(search_all_model_roots)
-            if ((${rel_inst_var_name} == null  || ${rel_inst_var_name}.isProxy()) && searchAllRoots && !baseRoot.isCompareRoot()) {
+            if (${rel_inst_var_name} == null && searchAllRoots && !baseRoot.isCompareRoot()) {
                 ${application_root_class}[] roots = ${application_root_class}.getInstances();
                 for (int i = 0; i < roots.length; i++) {
                     if(roots[i].isCompareRoot()) {
@@ -1363,48 +1410,18 @@ ${gen_RGO_resolution.body}\
     }
   }
 
-  public static ${class_name} $cr{object.Name}Instance(ModelRoot modelRoot, ${tcn.body} test, boolean loadComponent)
-  {
-        ${class_name} result=find$cr{object.Name}Instance(modelRoot,test,loadComponent);
-        .if (package.is_root AND  persistent) .//lazy loading is only for persistable elements
-        if(result==null && loadComponent){
-     List pmcs =  PersistenceManager.findAllComponents(modelRoot,${class_name}.class);
-        for (int i = 0; i < pmcs.size(); i++) {
-            PersistableModelComponent component = (PersistableModelComponent) pmcs
-                ..get(i);
-            if (!component.isLoaded()) {
-                try {
-                    component.load(new NullProgressMonitor());
-                     result=find$cr{object.Name}Instance(modelRoot,test,loadComponent);
-                     if(result!=null) return result;
-                } catch (Exception e) {
-                    CorePlugin.logError("Error Loading component", e);
-                }
-            }
-        }
-        }
-        if(result!=null && loadComponent){
-            result.loadProxy();
-        }
-        .end if
-      return result;  
-  }
-private static ${class_name} find$cr{object.Name}Instance(ModelRoot modelRoot, ${tcn.body} test, boolean loadComponent)
-{
+  public static ${class_name} $cr{object.Name}Instance(ModelRoot modelRoot, ${tcn.body} test, boolean loadComponent) {
     InstanceList instances = modelRoot.getInstanceList(${class_name}.class);
-        synchronized (instances) {
-            for (int i = 0; i < instances.size(); ++i) {
-                ${class_name} x = (${class_name}) instances.get(i);
-                if (test==null || test.evaluate(x)){
-        .if (package.is_root AND  persistent)
-                    if(x.ensureLoaded(loadComponent))
-        .end if
-                    return x;
-            }
+    synchronized (instances) {
+      for (int i = 0; i < instances.size(); ++i) {
+        ${class_name} x = (${class_name}) instances.get(i);
+        if (test==null || test.evaluate(x)){
+          return x;
         }
-        }
-            return null;
-}
+      }
+    }
+    return null;
+  }
   public static ${class_name} $cr{object.Name}Instance(ModelRoot modelRoot, ${tcn.body} test){
      return $cr{object.Name}Instance(modelRoot,test,true);
   }
@@ -1416,20 +1433,12 @@ private static ${class_name} find$cr{object.Name}Instance(ModelRoot modelRoot, $
 
   public static ${class_name} [] $cr{object.Name}Instances(ModelRoot modelRoot, ${tcn.body} test, boolean loadComponent)
   { 
-        .if (package.is_root AND  persistent) .//lazy loading is only for persistable elements
-            if(loadComponent){
-               PersistenceManager.ensureAllInstancesLoaded(modelRoot, ${class_name}.class);
-            }
-        .end if 
             InstanceList instances = modelRoot.getInstanceList(${class_name}.class);
             Vector matches = new Vector();
             synchronized (instances) {
                 for (int i = 0; i < instances.size(); ++i) {
                     ${class_name} x = (${class_name}) instances.get(i);
                     if (test==null ||test.evaluate(x)){
-        .if (package.is_root AND  persistent)
-                        if(x.ensureLoaded(loadComponent))
-        .end if
                         matches.add(x);
                 }
                 }
@@ -2124,6 +2133,9 @@ package ${package.name} ;
 ${gfh.body}\
 import org.eclipse.ui.IActionFilter;
 import ${package.name}.${class_name};
+import org.eclipse.core.resources.ProjectScope;
+import org.osgi.service.prefs.Preferences;
+import org.xtuml.bp.core.ui.preferences.BridgePointProjectPreferences;
 
 public class ${gafcn.body} implements IActionFilter
 {
@@ -2142,7 +2154,14 @@ public class ${gafcn.body} implements IActionFilter
     public boolean testAttribute(Object target, String name, String value)
     {
         ${class_name} x = (${class_name}) target;
-        return x.Actionfilter( name, value); 
+		if (name.equals("project_preference")) {
+			final Preferences projectPrefs = new ProjectScope(x.getPersistableComponent().getFile().getProject())
+					..getNode(BridgePointProjectPreferences.BP_PROJECT_PREFERENCES_ID);
+			return value.split("=")[1].equals(projectPrefs.get(value.split("=")[0], null));
+		} else {
+        	return x.Actionfilter( name, value); 
+		}
+ 
     }
 
 }
@@ -2198,6 +2217,11 @@ ${gsm.body}\
 .end for .// each package
 .//
 .//
+.select any functions_pkg from instances of EP_PKG where (selected.Name == "Functions")
+.invoke functions_in_split = in_split(functions_pkg, mc_pass_index)
+.if ((not_empty splits) and (functions_in_split.result))
+  .assign translate_enabled = true
+.end if
 .if (((translate_enabled == true) or (mc_ss_only != "")) and (mc_class_only == ""))
   .if (not already_translated)
     .// Translate OAL before translating the specifically requested package.
